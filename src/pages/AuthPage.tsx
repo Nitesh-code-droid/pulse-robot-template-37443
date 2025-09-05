@@ -102,7 +102,7 @@ const AuthPage = () => {
               <Heart className="h-12 w-12 text-primary fill-current" />
             </div>
             <CardTitle className="text-2xl font-display font-bold">
-              {isSignUp ? 'Join MindBridge' : 'Welcome Back'}
+              {isSignUp ? 'Join Nexion' : 'Welcome Back'}
             </CardTitle>
             <CardDescription>
               {isSignUp 
