@@ -9,9 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, Brain, User, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import CounsellorTest from '@/components/CounsellorTest';
 
 const AuthPage = () => {
   const [userType, setUserType] = useState<'student' | 'counsellor'>('student');
+  const [counsellorPassed, setCounsellorPassed] = useState(false);
+  const [showCounsellorTest, setShowCounsellorTest] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,6 +48,12 @@ const AuthPage = () => {
 
     try {
       if (isSignUp) {
+        if (userType === 'counsellor' && !counsellorPassed) {
+          setLoading(false);
+          toast.error('You must pass the counsellor qualifying test first.');
+          setShowCounsellorTest(true);
+          return;
+        }
         // Validation
         if (formData.password !== formData.confirmPassword) {
           toast.error('Passwords do not match');
@@ -113,7 +122,10 @@ const AuthPage = () => {
           </CardHeader>
 
           <CardContent>
-            <Tabs value={userType} onValueChange={(value) => setUserType(value as 'student' | 'counsellor')} className="mb-6">
+            <Tabs value={userType} onValueChange={(value) => {
+              setUserType(value as 'student' | 'counsellor');
+              setShowCounsellorTest(false);
+            }} className="mb-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="student" className="flex items-center">
                   <Brain className="h-4 w-4 mr-2" />
@@ -127,6 +139,11 @@ const AuthPage = () => {
             </Tabs>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {userType === 'counsellor' && isSignUp && !counsellorPassed && (
+                <div className="p-3 rounded border border-amber-300 bg-amber-50 text-amber-900 text-sm">
+                  You need to pass the qualifying test (>= 80%) before signing up as a counsellor.
+                </div>
+              )}
               {isSignUp && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
@@ -206,27 +223,46 @@ const AuthPage = () => {
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full gradient-button"
-                disabled={loading}
-              >
-                {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
-              </Button>
+              {userType === 'counsellor' && isSignUp && !counsellorPassed ? (
+                <Button 
+                  type="button"
+                  onClick={() => setShowCounsellorTest(true)}
+                  className="w-full gradient-button"
+                  disabled={loading}
+                >
+                  Start Qualifying Test
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  className="w-full gradient-button"
+                  disabled={loading}
+                >
+                  {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+                </Button>
+              )}
             </form>
 
             <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary hover:underline text-sm"
-              >
-                {isSignUp 
-                  ? 'Already have an account? Sign in' 
-                  : "Don't have an account? Sign up"
-                }
-              </button>
+              {userType === 'student' ? (
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-primary hover:underline text-sm"
+                >
+                  {isSignUp 
+                    ? 'Already have an account? Sign in' 
+                    : "Don't have an account? Sign up"
+                  }
+                </button>
+              ) : (
+                <Link to="/counsellor-enroll" className="text-primary hover:underline text-sm">
+                  Enroll for the qualifying test
+                </Link>
+              )}
             </div>
+
+            {/* In-modal test removed; it is now a dedicated page */}
 
             {/* Emergency Contact for Students */}
             {userType === 'student' && (
