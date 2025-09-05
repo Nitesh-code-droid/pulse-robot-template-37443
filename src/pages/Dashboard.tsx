@@ -29,7 +29,7 @@ const Dashboard = () => {
       description: "Get immediate mental health support with AI-powered guidance",
       link: "/chat",
       gradient: "from-calm-500 to-mindbridge-500",
-      image: "/lovable-uploads/22d31f51-c174-40a7-bd95-00e4ad00eaf3.png"
+      image: "/lovable-uploads/ai first support.jpg"
     },
     {
       icon: BookOpen,
@@ -37,7 +37,7 @@ const Dashboard = () => {
       description: "Access resources for stress, sleep, and mental wellness",
       link: "/resources",
       gradient: "from-healing-500 to-calm-400",
-      image: "/lovable-uploads/5663820f-6c97-4492-9210-9eaa1a8dc415.png"
+      image: "/lovable-uploads/wellnesshub.jpg"
     },
     {
       icon: Calendar,
@@ -45,7 +45,7 @@ const Dashboard = () => {
       description: "Schedule sessions with certified mental health professionals",
       link: "/booking",
       gradient: "from-mindbridge-500 to-healing-500",
-      image: "/lovable-uploads/af412c03-21e4-4856-82ff-d1a975dc84a9.png"
+      image: "/lovable-uploads/booking appoinmnet.jpg"
     },
     {
       icon: Users,
@@ -53,7 +53,7 @@ const Dashboard = () => {
       description: "Connect with other students in a safe, anonymous community",
       link: "/forum",
       gradient: "from-healing-400 to-mindbridge-400",
-      image: "/lovable-uploads/c3d5522b-6886-4b75-8ffc-d020016bb9c2.png"
+      image: "/lovable-uploads/peer support.jpg"
     }
   ];
 
@@ -145,11 +145,11 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {('image' in feature) && feature.image && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
+                    <div className="mb-4 rounded-lg overflow-hidden relative aspect-[16/9]">
                       <img 
-                        src={feature.image} 
+                        src={String(feature.image)} 
                         alt={feature.title}
-                        className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="absolute inset-0 w-full h-full object-cover object-center scale-110"
                       />
                     </div>
                   )}
