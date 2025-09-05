@@ -70,7 +70,7 @@ const Landing = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <Heart className="h-8 w-8 text-primary fill-current" />
-              <span className="font-display text-xl font-bold text-foreground">MindBridge</span>
+              <span className="font-display text-xl font-bold text-foreground">Nexion</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link to="/auth">
@@ -90,7 +90,7 @@ const Landing = () => {
           </div>
           
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-foreground mb-6 leading-tight">
-            MindBridge
+            Nexion
             <span className="block bg-mindbridge-gradient bg-clip-text text-transparent">
               A Safe Space for Student Mental Wellness
             </span>
@@ -212,7 +212,7 @@ const Landing = () => {
                       <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
+                  <p className="text-foreground mb-4 italic">"{testimonial.content.replace(/MindBridge/g, 'Nexion')}"</p>
                   <div>
                     <div className="font-semibold text-foreground">{testimonial.author}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.role}</div>
@@ -232,7 +232,7 @@ const Landing = () => {
               Ready to Start Your Wellness Journey?
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join thousands of students who have found support, healing, and community through MindBridge.
+              Join thousands of students who have found support, healing, and community through Nexion.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
@@ -242,7 +242,7 @@ const Landing = () => {
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                   Join as Counsellor
                   <Heart className="ml-2 h-5 w-5" />
                 </Button>
@@ -258,7 +258,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Heart className="h-6 w-6 text-primary fill-current" />
-              <span className="font-display text-lg font-bold text-foreground">MindBridge</span>
+              <span className="font-display text-lg font-bold text-foreground">Nexion</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
@@ -272,7 +272,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            <p>© 2024 MindBridge. Made with ❤️ for student mental wellness.</p>
+            <p>© 2024 Nexion. Made with ❤️ for student mental wellness.</p>
             <p className="mt-2">
               Emergency: <a href="tel:1800-891-4416" className="text-red-500 font-semibold hover:underline">Tele-MANAS 1800-891-4416</a>
             </p>
