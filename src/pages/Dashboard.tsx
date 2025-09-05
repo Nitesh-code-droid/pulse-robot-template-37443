@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import QuestionnaireModal from '@/components/QuestionnaireModal';
 
 const Dashboard = () => {
   const { profile } = useAuth();
   const isStudent = profile?.role === 'student';
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+
+  useEffect(() => {
+    if (!isStudent) return;
+    try {
+      const completed = localStorage.getItem('questionnaire_completed');
+      if (!completed) setShowQuestionnaire(true);
+    } catch {
+      setShowQuestionnaire(true);
+    }
+  }, [isStudent]);
 
   const studentFeatures = [
     {
@@ -80,6 +92,13 @@ const Dashboard = () => {
       
       <main className="pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {isStudent && (
+            <QuestionnaireModal 
+              open={showQuestionnaire}
+              onOpenChange={setShowQuestionnaire}
+              studentId={profile?.id}
+            />
+          )}
           {/* Welcome Section */}
           <div className="mb-12">
             <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-4">
