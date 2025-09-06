@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
+import GlobalButtons from '@/components/GlobalButtons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +16,7 @@ interface Message {
 }
 
 const AIChat = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -127,6 +130,11 @@ const AIChat = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <GlobalButtons
+        sidebarOpen={sidebarOpen}
+        onMenuClick={() => setSidebarOpen(true)}
+      />
       
       <main className="pt-24 pb-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

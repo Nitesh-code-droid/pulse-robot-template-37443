@@ -1,26 +1,73 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
+import GlobalButtons from '@/components/GlobalButtons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuestionnaireModal from '@/components/QuestionnaireModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { profile } = useAuth();
   const isStudent = profile?.role === 'student';
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isStudent) return;
+    if (!isStudent || !profile?.id) return;
+    
+    // First check localStorage as a quick check
     try {
-      const completed = localStorage.getItem('questionnaire_completed');
-      if (!completed) setShowQuestionnaire(true);
-    } catch {
-      setShowQuestionnaire(true);
+      const localCompleted = localStorage.getItem('questionnaire_completed');
+      if (localCompleted === '1') {
+        console.log('Questionnaire completed (localStorage check)');
+        setShowQuestionnaire(false);
+        return;
+      }
+    } catch (e) {
+      console.log('localStorage check failed, proceeding to database check');
     }
-  }, [isStudent]);
+    
+    // Check if questionnaire was completed in database
+    const checkQuestionnaireCompletion = async () => {
+      try {
+        console.log('Checking questionnaire completion for student:', profile.id);
+        const { data, error } = await (supabase as any)
+          .from('questionnaire_responses')
+          .select('id')
+          .eq('student_id', profile.id)
+          .limit(1);
+        
+        if (error) {
+          console.error('Error checking questionnaire completion:', error);
+          setShowQuestionnaire(true);
+          return;
+        }
+        
+        console.log('Database response:', data);
+        
+        // If no responses found, show questionnaire
+        if (!data || data.length === 0) {
+          console.log('No questionnaire responses found, showing questionnaire');
+          setShowQuestionnaire(true);
+        } else {
+          // Questionnaire completed, don't show it
+          console.log('Questionnaire already completed, not showing');
+          setShowQuestionnaire(false);
+          // Also set localStorage for future quick checks
+          try { localStorage.setItem('questionnaire_completed', '1'); } catch {}
+        }
+      } catch (error) {
+        console.error('Error checking questionnaire completion:', error);
+        setShowQuestionnaire(true);
+      }
+    };
+    
+    checkQuestionnaireCompletion();
+  }, [isStudent, profile?.id]);
 
   const studentFeatures = [
     {
@@ -89,8 +136,14 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       
       <main className="pt-24 pb-12">
+        <GlobalButtons 
+          sidebarOpen={sidebarOpen} 
+          onMenuClick={() => setSidebarOpen(true)} 
+        />
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {isStudent && (
             <QuestionnaireModal 

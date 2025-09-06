@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { getRankedCounsellors } from '@/lib/counsellorRanking';
 
 type QuestionnaireModalProps = {
   open: boolean;
@@ -87,15 +88,39 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
   };
 
   const persistResponses = async (payload: { student_id: string; answers: Record<string, unknown>; free_text?: string }) => {
-    await supabase.from('questionnaire_responses' as unknown as 'questionnaire_responses').insert(payload as any);
+    try {
+      console.log('Attempting to save questionnaire with payload:', payload);
+      const { data, error } = await (supabase as any)
+        .from('questionnaire_responses')
+        .insert(payload);
+      
+      if (error) {
+        console.error('Supabase error saving questionnaire responses:', error);
+        throw error;
+      }
+      console.log('Questionnaire responses saved successfully:', data);
+      return data;
+    } catch (err) {
+      console.error('Error in persistResponses:', err);
+      throw err;
+    }
   };
 
   const fetchAndRankCounsellors = async (finalAnswers: AnswerMap, classifiedLabel?: string): Promise<string[]> => {
-    const { data } = await supabase.from('counsellors').select('id, specialization, fees, affiliation, experience_years, is_available');
-    const rows = (data ?? []) as unknown as CounsellorRow[];
-    const scored = rows.map((row) => ({ id: row.id, score: scoreCounsellor(row, finalAnswers, classifiedLabel) }));
-    scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, 5).map((s) => s.id);
+    // Use centralized ranking that returns mapped names
+    try {
+      const profileId = studentId; // Questionnaire receives profile.id as studentId
+      const ranked = await getRankedCounsellors(profileId);
+      // Return top 5 counsellor NAMES
+      return ranked.slice(0, 5).map(r => r.name);
+    } catch (e) {
+      console.warn('Falling back to local ranking due to error:', e);
+      const { data } = await (supabase as any).from('counsellors').select('id, specialization, fees, affiliation, experience_years, is_available');
+      const rows = (data ?? []) as unknown as CounsellorRow[];
+      const scored = rows.map((row) => ({ id: row.id, score: scoreCounsellor(row, finalAnswers, classifiedLabel) }));
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, 5).map((s) => s.id);
+    }
   };
 
   const handleSubmit = async () => {
@@ -103,16 +128,27 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
     setError(null);
     try {
       const freeLabel = await classifyFreeText(answers.freeText ?? '');
+      // Try to persist responses, but do not block on failure
       if (studentId) {
-        await persistResponses({ student_id: studentId, answers: { q1: answers.q1, q2: answers.q2, q3: answers.q3 }, free_text: answers.freeText });
+        try {
+          console.log('Saving questionnaire for student:', studentId);
+          await persistResponses({ student_id: studentId, answers: { q1: answers.q1, q2: answers.q2, q3: answers.q3 }, free_text: answers.freeText });
+          console.log('Questionnaire saved successfully for student:', studentId);
+        } catch (persistErr) {
+          console.warn('Proceeding without saving questionnaire (will still show suggestions). Error:', persistErr);
+        }
       }
+      // Always proceed to compute suggestions
       const ids = await fetchAndRankCounsellors(answers, freeLabel);
       setSuggestedIds(ids);
       onSuggestions?.(ids);
       setSubmitted(true);
+      setError(null);
       // mark completion for this browser
       try { localStorage.setItem('questionnaire_completed', '1'); } catch {}
     } catch (e) {
+      console.error('Error in handleSubmit:', e);
+      // Show blocking error; do not mark as completed or proceed
       setError('Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
@@ -289,12 +325,12 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl w-[92vw] max-w-[900px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-3xl w-[92vw] max-w-[900px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95" hideCloseButton>
         <DialogHeader>
           <DialogTitle>Quick Check-in</DialogTitle>
           <DialogDescription>
-            Answer a few short questions to personalize your support. Lorem ipsum dolor sit amet.
+            Answer a few short questions to personalize your support. This questionnaire is required to access your dashboard.
           </DialogDescription>
         </DialogHeader>
 
@@ -313,7 +349,7 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
                 <Button onClick={goNext} disabled={!steps[stepIndex].canProceed || submitting} className="gradient-button transition-transform duration-200 hover:scale-[1.02]">Next</Button>
               ) : (
                 <Button disabled={disabled} onClick={handleSubmit} className="gradient-button transition-transform duration-200 hover:scale-[1.02]">
-                  {submitting ? 'Submitting...' : 'Get Suggestions'}
+                  {submitting ? 'Submitting...' : 'Complete & Get Suggestions'}
                 </Button>
               )}
             </DialogFooter>
@@ -324,16 +360,22 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
             <p className="text-sm text-muted-foreground">We used your answers to rank counsellors. You can proceed to booking; suggestions will be reflected there.</p>
             {suggestedIds && suggestedIds.length > 0 && (
               <div className="text-sm">
-                <span className="font-medium">Top matches (IDs):</span>
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <span className="font-medium">Top matches:</span>
+                <div className="mt-2 grid grid-cols-1 gap-2">
                   {suggestedIds.map((id) => (
-                    <div key={id} className="px-3 py-2 border rounded text-muted-foreground transition-all duration-200 hover:bg-muted/40">{id}</div>
+                    <div key={id} className="px-3 py-2 border rounded text-muted-foreground transition-all duration-200 hover:bg-muted/40">
+                      <div className="font-medium">{id}</div>
+                      <div className="text-xs text-muted-foreground">Suggested based on your responses</div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
             <DialogFooter>
-              <Button onClick={() => onOpenChange(false)} className="gradient-button w-full transition-transform duration-200 hover:scale-[1.02]">Continue</Button>
+              <Button onClick={() => {
+                console.log('Closing questionnaire modal');
+                onOpenChange(false);
+              }} className="gradient-button w-full transition-transform duration-200 hover:scale-[1.02]">Continue to Dashboard</Button>
             </DialogFooter>
           </div>
         )}

@@ -63,19 +63,19 @@ alter table public.counsellor_test_attempts enable row level security;
 
 do $$ begin
   if not exists (
-    select 1 from pg_policies where polname = 'counsellor_questions_read_all'
+    select 1 from pg_policies where policyname = 'counsellor_questions_read_all'
   ) then
     create policy counsellor_questions_read_all on public.counsellor_questions
       for select to anon, authenticated using (true);
   end if;
   if not exists (
-    select 1 from pg_policies where polname = 'counsellor_attempts_insert_all'
+    select 1 from pg_policies where policyname = 'counsellor_attempts_insert_all'
   ) then
     create policy counsellor_attempts_insert_all on public.counsellor_test_attempts
       for insert to anon, authenticated with check (true);
   end if;
   if not exists (
-    select 1 from pg_policies where polname = 'counsellor_attempts_select_all'
+    select 1 from pg_policies where policyname = 'counsellor_attempts_select_all'
   ) then
     create policy counsellor_attempts_select_all on public.counsellor_test_attempts
       for select to anon, authenticated using (true);
@@ -124,22 +124,35 @@ create table if not exists public.questionnaire_responses (
 -- Enable RLS
 alter table public.questionnaire_responses enable row level security;
 
--- Policies
-create policy "Students can insert their own questionnaire responses"
-  on public.questionnaire_responses
-  for insert
-  with check (auth.uid() = student_id);
-
-create policy "Students can read their own questionnaire responses"
-  on public.questionnaire_responses
-  for select
-  using (auth.uid() = student_id);
-
--- Optional: allow students to update their responses (not strictly needed)
-create policy "Students can update their own questionnaire responses"
-  on public.questionnaire_responses
-  for update
-  using (auth.uid() = student_id)
-  with check (auth.uid() = student_id);
+-- Policies for questionnaire_responses
+do $$ begin
+  if not exists (
+    select 1 from pg_policies where policyname = 'Students can insert their own questionnaire responses'
+  ) then
+    create policy "Students can insert their own questionnaire responses"
+      on public.questionnaire_responses
+      for insert
+      with check (student_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid()));
+  end if;
+  
+  if not exists (
+    select 1 from pg_policies where policyname = 'Students can read their own questionnaire responses'
+  ) then
+    create policy "Students can read their own questionnaire responses"
+      on public.questionnaire_responses
+      for select
+      using (student_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid()));
+  end if;
+  
+  if not exists (
+    select 1 from pg_policies where policyname = 'Students can update their own questionnaire responses'
+  ) then
+    create policy "Students can update their own questionnaire responses"
+      on public.questionnaire_responses
+      for update
+      using (student_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid()))
+      with check (student_id IN (SELECT id FROM public.profiles WHERE user_id = auth.uid()));
+  end if;
+end $$;
 
 

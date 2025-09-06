@@ -30,8 +30,9 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (user && profile) {
+      console.log('User already authenticated, redirecting to dashboard');
       const redirectPath = profile.role === 'counsellor' ? '/counsellor-dashboard' : '/dashboard';
-      navigate(redirectPath);
+      navigate(redirectPath, { replace: true });
     }
   }, [user, profile, navigate]);
 
@@ -141,7 +142,7 @@ const AuthPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {userType === 'counsellor' && isSignUp && !counsellorPassed && (
                 <div className="p-3 rounded border border-amber-300 bg-amber-50 text-amber-900 text-sm">
-                  You need to pass the qualifying test (>= 80%) before signing up as a counsellor.
+                  You need to pass the qualifying test (&gt;= 80%) before signing up as a counsellor.
                 </div>
               )}
               {isSignUp && (
