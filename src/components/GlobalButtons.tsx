@@ -33,7 +33,7 @@ const GlobalButtons: React.FC<GlobalButtonsProps> = ({ sidebarOpen, onMenuClick 
             variant="outline"
             size="sm"
             onClick={onMenuClick}
-            className="bg-white shadow-md hover:bg-gray-50"
+            className="bg-background border-border text-foreground shadow-md hover:bg-accent hover:text-accent-foreground"
           >
             <Menu className="h-4 w-4" />
           </Button>
@@ -41,7 +41,7 @@ const GlobalButtons: React.FC<GlobalButtonsProps> = ({ sidebarOpen, onMenuClick 
             variant="outline"
             size="sm"
             onClick={handleHomeClick}
-            className="bg-white shadow-md hover:bg-gray-50"
+            className="bg-background border-border text-foreground shadow-md hover:bg-accent hover:text-accent-foreground"
           >
             <Home className="h-4 w-4" />
           </Button>

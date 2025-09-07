@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuestionnaireModal from '@/components/QuestionnaireModal';
+import ThemeToggle from '@/components/ThemeToggle';
 import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
@@ -146,6 +147,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
       
       <main className="pt-24 pb-12">
         <GlobalButtons 

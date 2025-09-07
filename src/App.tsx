@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -15,7 +16,13 @@ import SuggestedCounsellors from '@/pages/SuggestedCounsellors';
 import Dashboard from '@/pages/Dashboard';
 import AIChat from '@/pages/AIChat';
 import WellnessHub from '@/pages/WellnessHub';
+import StressReliefTechniques from '@/pages/StressReliefTechniques';
+import SleepHygieneGuide from '@/pages/SleepHygieneGuide';
+import ExamStressManagement from '@/pages/ExamStressManagement';
+import GuidedMeditation from '@/pages/GuidedMeditation';
 import BookCounsellor from '@/pages/BookCounsellor';
+import PaymentPage from '@/pages/PaymentPage';
+import SleepDiary from '@/pages/SleepDiary';
 import PeerSupport from '@/pages/PeerSupport';
 import CounsellorBookings from '@/pages/CounsellorBookings';
 import CounsellorAvailability from '@/pages/CounsellorAvailability';
@@ -29,11 +36,12 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-background">
-              <Routes>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <TooltipProvider>
+          <AuthProvider>
+            <Router>
+              <div className="min-h-screen bg-background">
+                <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/counsellor-enroll" element={<CounsellorTestIntro />} />
@@ -74,10 +82,58 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/wellness/stress-relief" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <StressReliefTechniques />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/sleep-hygiene" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <SleepHygieneGuide />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/exam-stress" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <ExamStressManagement />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/meditation" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <GuidedMeditation />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/sleep-diary" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <SleepDiary />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/booking" 
                   element={
                     <ProtectedRoute requiredRole="student">
                       <BookCounsellor />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/payment" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <PaymentPage />
                     </ProtectedRoute>
                   } 
                 />
@@ -118,11 +174,12 @@ function App() {
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <Toaster />
-            </div>
-          </Router>
-        </AuthProvider>
-      </TooltipProvider>
+                <Toaster />
+              </div>
+            </Router>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

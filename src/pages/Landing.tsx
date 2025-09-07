@@ -1,8 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Brain, Users, Calendar, MessageCircle, BookOpen, ArrowRight, Star, Shield, Clock } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
+
+// Simple FeatureCard Component with Clean Hover Effect
+const FeatureCard = ({ feature, index }: { feature: any; index: number }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div 
+      className="w-full max-w-sm mx-auto h-80"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ 
+        duration: 0.5, 
+        delay: index * 0.1,
+        ease: "easeOut"
+      }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
+      <Card className="h-full border border-border/20 bg-gradient-to-br from-background via-background to-accent/5 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30">
+        {/* Main Content */}
+        <CardContent className="p-6 h-full flex flex-col justify-center items-center text-center relative">
+          {/* Background Glow */}
+          <motion.div 
+            className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} opacity-0`}
+            animate={{
+              opacity: isHovered ? 0.05 : 0,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+          
+          {/* Icon */}
+          <motion.div 
+            className={`rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center w-16 h-16 mb-4 relative z-10`}
+            animate={{
+              scale: isHovered ? 1.1 : 1,
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <feature.icon className="text-white h-8 w-8" />
+          </motion.div>
+
+          {/* Title */}
+          <motion.h3 
+            className="font-bold text-xl text-foreground mb-3 relative z-10"
+            animate={{
+              color: isHovered ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            {feature.title}
+          </motion.h3>
+          
+          {/* Description */}
+          <AnimatePresence mode="wait">
+            {!isHovered ? (
+              <motion.p 
+                key="description"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground text-sm leading-relaxed relative z-10"
+              >
+                {feature.description}
+              </motion.p>
+            ) : (
+              <motion.div
+                key="features"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+                className="space-y-2 relative z-10 w-full"
+              >
+                <p className="text-xs text-primary font-medium mb-3">Key Features:</p>
+                {feature.detailedInfo.features.slice(0, 3).map((item: any, i: number) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 + 0.2 }}
+                    className="flex items-center space-x-2 text-left"
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${feature.gradient} flex-shrink-0`} />
+                    <span className="text-xs text-foreground font-medium">
+                      {item.title}
+                    </span>
+                  </motion.div>
+                ))}
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  +{feature.detailedInfo.features.length - 3} more features
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 const Landing = () => {
   const [userType, setUserType] = useState<'student' | 'counsellor' | null>(null);
@@ -12,25 +114,121 @@ const Landing = () => {
       icon: Brain,
       title: "AI First-Aid",
       description: "24/7 immediate mental health support with personalized guidance",
-      gradient: "from-calm-500 to-mindbridge-500"
+      gradient: "from-calm-500 to-mindbridge-500",
+      detailedInfo: {
+        features: [
+          {
+            title: "AI Chat Support",
+            description: "Intelligent conversational AI that provides immediate emotional support and guidance during mental health crises.",
+            features: ["24/7 Availability", "Crisis Detection", "Empathetic Responses"]
+          },
+          {
+            title: "Personalized Guidance",
+            description: "Tailored mental health recommendations based on your unique needs, mood patterns, and preferences.",
+            features: ["Custom Plans", "Mood Analysis", "Progress Tracking"]
+          },
+          {
+            title: "Smart Recommendations",
+            description: "AI-powered suggestions for coping strategies, breathing exercises, and wellness activities.",
+            features: ["Adaptive Learning", "Contextual Tips", "Evidence-Based"]
+          },
+          {
+            title: "24/7 Student Assistance",
+            description: "Round-the-clock support specifically designed for student mental health challenges and academic stress.",
+            features: ["Academic Stress", "Exam Anxiety", "Study Balance"]
+          }
+        ]
+      }
     },
     {
       icon: BookOpen,
       title: "Wellness Hub",
       description: "Comprehensive resources for stress, sleep, and mental wellness",
-      gradient: "from-healing-500 to-calm-400"
+      gradient: "from-healing-500 to-calm-400",
+      detailedInfo: {
+        features: [
+          {
+            title: "Sleep Hygiene Activities",
+            description: "Comprehensive sleep improvement tools including sleep diary, quality tracking, and bedtime optimization.",
+            features: ["Sleep Diary", "Quality Metrics", "Bedtime Routine"]
+          },
+          {
+            title: "Stress Relief Exercises",
+            description: "Evidence-based techniques including 4-7-8 breathing, progressive muscle relaxation, and desk stretches.",
+            features: ["Breathing Techniques", "Muscle Relaxation", "Quick Relief"]
+          },
+          {
+            title: "Guided Meditation",
+            description: "Personalized meditation sessions with interactive player, progress tracking, and various themes.",
+            features: ["Multiple Themes", "Progress Tracking", "Custom Duration"]
+          },
+          {
+            title: "Breathing Practices",
+            description: "Advanced breathing exercises designed specifically for anxiety management and stress reduction.",
+            features: ["Anxiety Relief", "Stress Reduction", "Focus Enhancement"]
+          }
+        ]
+      }
     },
     {
       icon: Calendar,
       title: "Book Counsellor",
       description: "Connect with certified counsellors with transparent fees",
-      gradient: "from-mindbridge-500 to-healing-500"
+      gradient: "from-mindbridge-500 to-healing-500",
+      detailedInfo: {
+        features: [
+          {
+            title: "Choose a Time Slot",
+            description: "Flexible scheduling system with real-time availability, multiple time zones, and easy rescheduling options.",
+            features: ["Real-time Availability", "Multiple Time Zones", "Easy Rescheduling"]
+          },
+          {
+            title: "Book Appointment",
+            description: "Streamlined booking process with instant confirmation, calendar integration, and reminder notifications.",
+            features: ["Instant Confirmation", "Calendar Sync", "Reminders"]
+          },
+          {
+            title: "Payment Prototype",
+            description: "Secure and transparent payment system with multiple options, clear pricing, and student discounts.",
+            features: ["Secure Payments", "Student Discounts", "Transparent Pricing"]
+          },
+          {
+            title: "Certified Counsellors",
+            description: "Licensed mental health professionals with verified credentials, student specialization, and proven track records.",
+            features: ["Licensed Professionals", "Student Specialists", "Verified Credentials"]
+          }
+        ]
+      }
     },
     {
       icon: Users,
       title: "Peer Support",
       description: "Anonymous community forum for sharing and healing together",
-      gradient: "from-healing-400 to-mindbridge-400"
+      gradient: "from-healing-400 to-mindbridge-400",
+      detailedInfo: {
+        features: [
+          {
+            title: "Anonymous Posts",
+            description: "Share your experiences and challenges in a completely anonymous environment with privacy protection.",
+            features: ["Complete Anonymity", "Privacy Protection", "Safe Sharing"]
+          },
+          {
+            title: "Likes & Comments",
+            description: "Engage with the community through supportive interactions, encouragement, and shared experiences.",
+            features: ["Supportive Interactions", "Encouragement", "Shared Experiences"]
+          },
+          {
+            title: "Safe Community",
+            description: "Moderated environment with content filtering, community guidelines, and professional oversight.",
+            features: ["Content Moderation", "Community Guidelines", "Professional Oversight"]
+          },
+          {
+            title: "Peer Mentoring",
+            description: "Connect with experienced peers who understand your journey and can provide guidance and support.",
+            features: ["Experienced Peers", "Guidance & Support", "Shared Understanding"]
+          }
+        ]
+      }
     }
   ];
 
@@ -69,10 +267,11 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <Heart className="h-8 w-8 text-primary fill-current" />
+              <Heart className="h-6 w-6 text-primary fill-current" />
               <span className="font-display text-xl font-bold text-foreground">Nexion</span>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <Link to="/auth">
                 <Button variant="outline">Sign In</Button>
               </Link>
@@ -80,6 +279,9 @@ const Landing = () => {
           </div>
         </div>
       </nav>
+
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
@@ -173,21 +375,23 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="hover-lift group border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <feature.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <CardTitle className="text-xl mb-3 text-foreground">{feature.title}</CardTitle>
-                  <CardDescription className="text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {/* Horizontal Feature Cards Layout */}
+          <motion.div 
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              {features.map((feature, index) => (
+                <div key={index} className="flex justify-center">
+                  <FeatureCard feature={feature} index={index} />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
       </section>
 

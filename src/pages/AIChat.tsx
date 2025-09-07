@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Send, Bot, User, Heart, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 import { API_BASE } from '@/lib/config';
 import { toast } from 'sonner';
+
 
 interface Message {
   id: string;
@@ -207,6 +210,9 @@ const AIChat = () => {
         sidebarOpen={sidebarOpen}
         onMenuClick={() => setSidebarOpen(true)}
       />
+      
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
       
       <main className="pt-24 pb-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

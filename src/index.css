@@ -74,46 +74,39 @@
     --background: 215 28% 17%;
     --foreground: 210 40% 98%;
 
-    --card: 215 28% 17%;
+    --card: 217.2 32.6% 22%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 215 28% 17%;
+    --popover: 217.2 32.6% 22%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 256 100% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217.2 32.6% 28%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217.2 32.6% 28%;
+    --muted-foreground: 215 20.2% 75%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217.2 32.6% 28%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 35%;
+    --input: 217.2 32.6% 28%;
     --ring: 256 100% 67%;
 
-    /* Dark mode mental health colors */
-    --mindbridge-primary: 256 100% 67%;
-    --mindbridge-secondary: 195 100% 75%;
-    --mindbridge-accent: 142 76% 73%;
-    --mindbridge-warm: 45 100% 75%;
-    --mindbridge-gentle: 320 100% 80%;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 217.2 32.6% 20%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 256 100% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 217.2 32.6% 25%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 35%;
+    --sidebar-ring: 256 100% 67%;
   }
 }
 
@@ -148,6 +141,7 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+
 }
 
 @layer components {
@@ -157,6 +151,29 @@
     color: transparent;
     background-size: cover;
     background-position: center;
+  }
+
+  /* Enhanced card styling for better dark theme visibility */
+  .wellness-card {
+    @apply bg-card border border-border/60 shadow-lg hover:shadow-xl dark:shadow-2xl dark:border-border/80 dark:bg-card/95 transition-all duration-300 rounded-xl backdrop-blur-sm;
+  }
+
+  .wellness-card:hover {
+    @apply border-primary/30 shadow-primary/10 dark:border-primary/50;
+  }
+
+  /* Enhanced visibility for dark mode elements */
+  .dark-mode-enhanced {
+    @apply dark:bg-card/90 dark:border-border/70 dark:shadow-xl;
+  }
+
+  /* Menu and navigation improvements */
+  .nav-item {
+    @apply text-foreground hover:text-primary transition-colors duration-200;
+  }
+
+  .menu-container {
+    @apply bg-background/95 backdrop-blur-md border border-border/60 shadow-lg dark:shadow-2xl;
   }
 
   .mindbridge-chip {
@@ -257,8 +274,9 @@
   transform: translateY(-5px);
 }
 
-/* Parallax effect */
-.parallax {
-  transform: translateY(var(--parallax-y, 0));
-  transition: transform 0.1s ease-out;
-}
+  /* Parallax effect */
+  .parallax {
+    transform: translateY(var(--parallax-y, 0));
+    transition: transform 0.1s ease-out;
+  }
+
