@@ -12,9 +12,25 @@ import { toast } from 'sonner';
 
 interface Message {
   id: string;
-  content: string;
+  content: string | CounsellorSuggestion;
   sender: 'user' | 'ai';
   timestamp: Date;
+}
+
+interface CounsellorSuggestion {
+  type: 'counsellor_suggestion';
+  message: string;
+  counsellors: Array<{
+    id: string;
+    name: string;
+    specialization: string;
+    affiliation: string;
+    fees: number;
+    experience_years: number;
+    ranking_score: number;
+    languages: string[];
+    bio: string;
+  }>;
 }
 
 const AIChat = () => {
@@ -85,7 +101,7 @@ const AIChat = () => {
 
     try {
       // Map affirmative short replies to an 'explain more' intent if we have a lastTopic
-      const lower = userMessage.content.toLowerCase().trim();
+      const lower = typeof userMessage.content === 'string' ? userMessage.content.toLowerCase().trim() : '';
       const affirmative = /^(yes|yeah|yep|y|sure|ok|okay|please|pls|plz|s)$/i.test(lower) || lower.includes('yes please') || lower.includes('yes plz');
       const outboundMessage = affirmative && lastTopic ? 'explain more' : userMessage.content;
 
@@ -100,7 +116,7 @@ const AIChat = () => {
         throw new Error(err?.detail || `Server error (${res.status})`);
       }
 
-      const data: { reply: string; last_topic?: string } = await res.json();
+      const data: { reply: string | CounsellorSuggestion; last_topic?: string } = await res.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         content: data.reply,
@@ -110,16 +126,29 @@ const AIChat = () => {
       setMessages(prev => [...prev, aiResponse]);
       setLastTopic(data.last_topic);
     } catch (e: any) {
-      // Fallback to local rule-based response if server is down
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIResponse(inputMessage),
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      // Optionally surface a toast once
-      // toast.error(e?.message || 'Using offline response');
+      // For high-risk messages, show emergency fallback instead of generic response
+      const lowerInput = inputMessage.toLowerCase();
+      const isHighRisk = ['kill myself', 'want to die', 'suicide', 'hurt myself', 'end my life'].some(keyword => lowerInput.includes(keyword));
+      
+      if (isHighRisk) {
+        const emergencyResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I'm really sorry you're going through this. Please reach out to someone immediately - call emergency services, campus counselling, or the crisis helpline: 1800-891-4416. You don't have to face this alone.",
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, emergencyResponse]);
+      } else {
+        // Fallback to local rule-based response if server is down
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: getAIResponse(inputMessage),
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }
+      toast.error('Server connection issue - using offline response');
     } finally {
       setIsTyping(false);
     }
@@ -222,7 +251,40 @@ const AIChat = () => {
                         ? 'chat-bubble-user' 
                         : 'chat-bubble-ai'
                     }`}>
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      {typeof message.content === 'string' ? (
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-sm leading-relaxed text-red-700 font-medium">
+                            {message.content.message}
+                          </p>
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <h4 className="font-semibold text-red-800 mb-2">Suggested Counsellors:</h4>
+                            <div className="space-y-2">
+                              {message.content.counsellors.slice(0, 3).map((counsellor) => (
+                                <div key={counsellor.id} className="bg-white p-2 rounded border">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-medium text-sm">{counsellor.name}</p>
+                                      <p className="text-xs text-gray-600">{counsellor.specialization}</p>
+                                      <p className="text-xs text-gray-500">{counsellor.affiliation}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-xs font-medium">₹{counsellor.fees}</p>
+                                      <p className="text-xs text-gray-500">{counsellor.experience_years}y exp</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <Link to="/booking">
+                              <Button className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white">
+                                Book Emergency Session
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      )}
                       <div className="text-xs opacity-70 mt-2">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
