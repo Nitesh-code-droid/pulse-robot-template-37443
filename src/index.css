@@ -99,13 +99,6 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 256 100% 67%;
 
-    /* Dark mode mental health colors */
-    --mindbridge-primary: 256 100% 67%;
-    --mindbridge-secondary: 195 100% 75%;
-    --mindbridge-accent: 142 76% 73%;
-    --mindbridge-warm: 45 100% 75%;
-    --mindbridge-gentle: 320 100% 80%;
-
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -148,6 +141,7 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+
 }
 
 @layer components {
@@ -257,8 +251,9 @@
   transform: translateY(-5px);
 }
 
-/* Parallax effect */
-.parallax {
-  transform: translateY(var(--parallax-y, 0));
-  transition: transform 0.1s ease-out;
-}
+  /* Parallax effect */
+  .parallax {
+    transform: translateY(var(--parallax-y, 0));
+    transition: transform 0.1s ease-out;
+  }
+

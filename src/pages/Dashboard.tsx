@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuestionnaireModal from '@/components/QuestionnaireModal';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -89,6 +90,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
       
       <main className="pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

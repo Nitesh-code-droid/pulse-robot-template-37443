@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Send, Bot, User, Heart, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface Message {
   id: string;
@@ -127,6 +128,9 @@ const AIChat = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
       
       <main className="pt-24 pb-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

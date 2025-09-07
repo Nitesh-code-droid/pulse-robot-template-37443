@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Brain, Users, Calendar, MessageCircle, BookOpen, ArrowRight, Star, Shield, Clock } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const Landing = () => {
   const [userType, setUserType] = useState<'student' | 'counsellor' | null>(null);
@@ -73,6 +74,7 @@ const Landing = () => {
               <span className="font-display text-xl font-bold text-foreground">Nexion</span>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <Link to="/auth">
                 <Button variant="outline">Sign In</Button>
               </Link>
@@ -80,6 +82,9 @@ const Landing = () => {
           </div>
         </div>
       </nav>
+
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
