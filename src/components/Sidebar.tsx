@@ -220,33 +220,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 h-full w-80 bg-background border-r border-border shadow-xl z-50 transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center space-x-2">
               <Heart className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">MindBridge</span>
+              <span className="font-bold text-lg text-foreground">Nexion</span>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggle}
+              className="text-foreground hover:bg-accent"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* User Info */}
-          <div className="p-4 border-b bg-primary/5">
+          <div className="p-4 border-b border-border bg-primary/5">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="font-medium">{profile?.full_name}</p>
+                <p className="font-medium text-foreground">{profile?.full_name}</p>
                 <p className="text-sm text-muted-foreground capitalize">{profile?.role}</p>
               </div>
             </div>
@@ -259,11 +260,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 <Link
                   key={index}
                   to={item.path}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent text-foreground hover:text-foreground transition-colors"
                   onClick={onToggle}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5 text-foreground" />
+                  <span className="text-foreground">{item.label}</span>
                 </Link>
               ))}
 
@@ -271,11 +272,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 <Link
                   key={index}
                   to={item.path}
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent text-foreground hover:text-foreground transition-colors"
                   onClick={onToggle}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5 text-foreground" />
+                  <span className="text-foreground">{item.label}</span>
                 </Link>
               ))}
 

@@ -8,11 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import QuestionnaireModal from '@/components/QuestionnaireModal';
-<<<<<<< HEAD
 import ThemeToggle from '@/components/ThemeToggle';
-=======
 import { supabase } from '@/integrations/supabase/client';
->>>>>>> a5cf8983ec0796d4f2c820daf75642430b010f8a
 
 const Dashboard = () => {
   const { profile } = useAuth();

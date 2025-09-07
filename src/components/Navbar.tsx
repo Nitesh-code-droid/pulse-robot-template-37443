@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -21,10 +21,9 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-    // Prevent background scrolling when menu is open
-    document.body.style.overflow = !isMenuOpen ? 'hidden' : '';
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    document.body.style.overflow = !isMobileMenuOpen ? 'hidden' : '';
   };
 
   const scrollToTop = () => {
@@ -33,9 +32,8 @@ const Navbar = () => {
       behavior: 'smooth'
     });
     
-    // Close mobile menu if open
-    if (isMenuOpen) {
-      setIsMenuOpen(false);
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
       document.body.style.overflow = '';
     }
   };
@@ -43,149 +41,144 @@ const Navbar = () => {
   const handleLogout = async () => {
     await signOut();
     navigate('/');
-    // Close mobile menu if open
-    if (isMenuOpen) {
-      setIsMenuOpen(false);
+    if (isMobileMenuOpen) {
       document.body.style.overflow = '';
     }
   };
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 py-2 sm:py-3 md:py-4 transition-all duration-300",
-        isScrolled 
-          ? "bg-white/80 backdrop-blur-md shadow-sm" 
-          : "bg-transparent"
-      )}
-    >
-      <div className="container flex items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a 
-          href="#" 
-          className="flex items-center space-x-2"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToTop();
-          }}
-          aria-label="Nexion"
-        >
-          <img 
-            src="/logo.svg" 
-            alt="Nexion Logo"
-            className="h-7 sm:h-8" 
-          />
-        </a>
+    <header className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-300 menu-container",
+      isScrolled 
+        ? "bg-background/95 backdrop-blur-md border-b border-border/60 shadow-lg dark:shadow-2xl" 
+        : "bg-background/80 backdrop-blur-sm border-b border-border/30"
+    )}>
+      <div className="container flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+        {/* Completely empty left side */}
+        <div></div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {user ? (
-            // Authenticated user navigation
-            <>
-              <div className="flex items-center space-x-2 text-sm text-gray-700">
-                <User className="h-4 w-4" />
-                <span className="font-medium">{profile?.full_name}</span>
-                <span className="text-gray-500">({profile?.role})</span>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/70 flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-medium text-foreground text-sm">
+                  {profile?.full_name || 'User'}
+                </span>
               </div>
               <Button 
                 onClick={handleLogout}
-                variant="outline"
+                variant="outline" 
                 size="sm"
-                className="flex items-center space-x-2 border-gray-300 hover:bg-gray-50"
+                className="text-foreground border-border hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 rounded-full px-4"
               >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </Button>
-            </>
+            </div>
           ) : (
-            // Guest navigation
             <>
               <a 
                 href="#" 
-                className="nav-link"
+                className="text-foreground hover:text-primary transition-all duration-300 font-medium relative group"
                 onClick={(e) => {
                   e.preventDefault();
                   scrollToTop();
                 }}
               >
                 Home
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
               </a>
-              <a href="#features" className="nav-link">About</a>
-              <a href="#details" className="nav-link">Contact</a>
+              <a href="#features" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative group">
+                About
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+              </a>
+              <a href="#details" className="text-foreground hover:text-primary transition-all duration-300 font-medium relative group">
+                Contact
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+              </a>
             </>
           )}
         </nav>
 
-        {/* Mobile menu button - increased touch target */}
-        <button 
-          className="md:hidden text-gray-700 p-3 focus:outline-none" 
-          onClick={toggleMenu}
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+        {/* Mobile menu button */}
+        <button
+          onClick={toggleMobileMenu}
+          className="md:hidden p-2 rounded-full text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-300 border border-border/50 hover:border-primary/30"
+          aria-label="Toggle menu"
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Mobile Navigation - improved for better touch experience */}
+      {/* Mobile Navigation */}
       <div className={cn(
-        "fixed inset-0 z-40 bg-white flex flex-col pt-16 px-6 md:hidden transition-all duration-300 ease-in-out",
-        isMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
+        "md:hidden fixed inset-0 z-40 transition-all duration-300",
+        isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
       )}>
-        <nav className="flex flex-col space-y-8 items-center mt-8">
-          {user ? (
-            // Authenticated user mobile navigation
-            <>
-              <div className="flex items-center space-x-2 text-lg font-medium py-3 px-6 w-full text-center rounded-lg bg-gray-50">
-                <User className="h-5 w-5" />
-                <span>{profile?.full_name}</span>
-                <span className="text-gray-500">({profile?.role})</span>
-              </div>
-              <Button 
-                onClick={handleLogout}
-                variant="outline"
-                className="w-full flex items-center justify-center space-x-2 py-3 text-lg border-gray-300 hover:bg-gray-50"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
-              </Button>
-            </>
-          ) : (
-            // Guest mobile navigation
-            <>
-              <a 
-                href="#" 
-                className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-gray-100" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToTop();
-                  setIsMenuOpen(false);
-                  document.body.style.overflow = '';
-                }}
-              >
-                Home
-              </a>
-              <a 
-                href="#features" 
-                className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-gray-100" 
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  document.body.style.overflow = '';
-                }}
-              >
-                About
-              </a>
-              <a 
-                href="#details" 
-                className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-gray-100" 
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  document.body.style.overflow = '';
-                }}
-              >
-                Contact
-              </a>
-            </>
-          )}
-        </nav>
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+        <div className={cn(
+          "absolute top-16 left-0 right-0 bg-background/95 backdrop-blur-md border-b border-border/60 shadow-lg dark:shadow-2xl transition-all duration-300 menu-container",
+          isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
+        )}>
+          <nav className="flex flex-col space-y-4 p-6">
+            {user ? (
+              <>
+                <div className="flex items-center space-x-2 text-lg font-medium py-3 px-6 w-full text-center rounded-lg bg-accent">
+                  <User className="h-5 w-5" />
+                  <span>{profile?.full_name || 'User'}</span>
+                  <span className="text-muted-foreground">{profile?.email}</span>
+                </div>
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="w-full flex items-center justify-center space-x-2 py-3 text-lg border-border hover:bg-accent hover:text-accent-foreground"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <a 
+                  href="#" 
+                  className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-accent hover:text-accent-foreground nav-item" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToTop();
+                    setIsMobileMenuOpen(false);
+                    document.body.style.overflow = '';
+                  }}
+                >
+                  Home
+                </a>
+                <a 
+                  href="#features" 
+                  className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-accent hover:text-accent-foreground nav-item" 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    document.body.style.overflow = '';
+                  }}
+                >
+                  About
+                </a>
+                <a 
+                  href="#details" 
+                  className="text-xl font-medium py-3 px-6 w-full text-center rounded-lg hover:bg-accent hover:text-accent-foreground nav-item" 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    document.body.style.overflow = '';
+                  }}
+                >
+                  Contact
+                </a>
+              </>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );

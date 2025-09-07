@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Star, Clock } from 'lucide-react';
+import { Star, MapPin, Clock, Calendar, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const BookCounsellor = () => {
+  const navigate = useNavigate();
+  const [selectedCounsellor, setSelectedCounsellor] = useState<any>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [showTimeSlots, setShowTimeSlots] = useState(false);
+  
+  const timeSlots = [
+    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+    '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
+  ];
+  
   const counsellors = [
     {
       name: "Dr. Sarah Johnson",
@@ -44,6 +56,9 @@ const BookCounsellor = () => {
         sidebarOpen={sidebarOpen}
         onMenuClick={() => setSidebarOpen(true)}
       />
+      
+      {/* Floating Theme Toggle - Always Visible */}
+      <ThemeToggle variant="floating" />
       
       <main className="pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -83,7 +98,13 @@ const BookCounsellor = () => {
                       ₹{counsellor.fees}/session
                     </div>
                   </div>
-                  <Button className="w-full gradient-button">
+                  <Button 
+                    className="w-full gradient-button"
+                    onClick={() => {
+                      setSelectedCounsellor(counsellor);
+                      setShowTimeSlots(true);
+                    }}
+                  >
                     <Calendar className="mr-2 h-4 w-4" />
                     Book Appointment
                   </Button>
@@ -91,6 +112,95 @@ const BookCounsellor = () => {
               </Card>
             ))}
           </div>
+
+          {/* Time Slot Selection Modal */}
+          {showTimeSlots && selectedCounsellor && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="wellness-card w-full max-w-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Select Time Slot</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => setShowTimeSlots(false)}
+                    >
+                      ✕
+                    </Button>
+                  </CardTitle>
+                  <CardDescription>
+                    Choose your preferred appointment time with {selectedCounsellor.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-accent/50 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <User className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-foreground">{selectedCounsellor.name}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedCounsellor.specialization} • ₹{selectedCounsellor.fees}/session
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">
+                      Available Time Slots - Today
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {timeSlots.map(slot => (
+                        <Button
+                          key={slot}
+                          size="sm"
+                          variant={selectedTimeSlot === slot ? "default" : "outline"}
+                          onClick={() => setSelectedTimeSlot(slot)}
+                          className="text-sm"
+                        >
+                          {slot}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedTimeSlot && (
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="text-sm text-green-700 dark:text-green-300">
+                        ✓ Selected: {selectedTimeSlot} appointment with {selectedCounsellor.name}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowTimeSlots(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="flex-1 gradient-button"
+                      onClick={() => {
+                        if (selectedTimeSlot) {
+                          navigate('/payment', {
+                            state: {
+                              counsellorName: selectedCounsellor.name,
+                              sessionType: 'Individual Session',
+                              amount: `₹${selectedCounsellor.fees}`,
+                              timeSlot: selectedTimeSlot
+                            }
+                          });
+                        }
+                      }}
+                      disabled={!selectedTimeSlot}
+                    >
+                      Continue to Payment
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
     </div>

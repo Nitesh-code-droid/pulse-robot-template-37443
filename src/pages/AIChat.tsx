@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Send, Bot, User, Heart, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
 
 import { API_BASE } from '@/lib/config';
 import { toast } from 'sonner';

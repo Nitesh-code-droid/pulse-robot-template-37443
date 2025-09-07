@@ -16,7 +16,13 @@ import SuggestedCounsellors from '@/pages/SuggestedCounsellors';
 import Dashboard from '@/pages/Dashboard';
 import AIChat from '@/pages/AIChat';
 import WellnessHub from '@/pages/WellnessHub';
+import StressReliefTechniques from '@/pages/StressReliefTechniques';
+import SleepHygieneGuide from '@/pages/SleepHygieneGuide';
+import ExamStressManagement from '@/pages/ExamStressManagement';
+import GuidedMeditation from '@/pages/GuidedMeditation';
 import BookCounsellor from '@/pages/BookCounsellor';
+import PaymentPage from '@/pages/PaymentPage';
+import SleepDiary from '@/pages/SleepDiary';
 import PeerSupport from '@/pages/PeerSupport';
 import CounsellorBookings from '@/pages/CounsellorBookings';
 import CounsellorAvailability from '@/pages/CounsellorAvailability';
@@ -76,10 +82,58 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/wellness/stress-relief" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <StressReliefTechniques />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/sleep-hygiene" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <SleepHygieneGuide />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/exam-stress" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <ExamStressManagement />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/meditation" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <GuidedMeditation />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wellness/sleep-diary" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <SleepDiary />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/booking" 
                   element={
                     <ProtectedRoute requiredRole="student">
                       <BookCounsellor />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/payment" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <PaymentPage />
                     </ProtectedRoute>
                   } 
                 />
