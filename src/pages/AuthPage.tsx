@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ const AuthPage = () => {
 
   const { signIn, signUp, user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (user && profile) {
@@ -35,6 +36,15 @@ const AuthPage = () => {
       navigate(redirectPath, { replace: true });
     }
   }, [user, profile, navigate]);
+
+  // Initialize role from URL (?role=student|counsellor)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role');
+    if (roleParam === 'counsellor' || roleParam === 'student') {
+      setUserType(roleParam);
+    }
+  }, [location.search]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({

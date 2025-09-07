@@ -29,8 +29,35 @@ const AIChat = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  // Simple conversational memory
+  const [memory, setMemory] = useState<{ topic?: string; lastPromptKey?: string; triedTechnique?: 'yes' | 'no' | undefined }>({});
   const [lastTopic, setLastTopic] = useState<string | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Persist memory per session (lightweight)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('aichat_memory');
+      if (saved) setMemory(JSON.parse(saved));
+      let sid = localStorage.getItem('chat_session_id');
+      if (!sid) {
+        try {
+          // Generate a lightweight session id
+          const rand = Math.random().toString(36).slice(2);
+          sid = `sess_${Date.now()}_${rand}`;
+        } catch {
+          sid = `sess_${Date.now()}`;
+        }
+        localStorage.setItem('chat_session_id', sid);
+      }
+      setSessionId(sid);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('aichat_memory', JSON.stringify(memory)); } catch {}
+  }, [memory]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,10 +84,15 @@ const AIChat = () => {
     setIsTyping(true);
 
     try {
+      // Map affirmative short replies to an 'explain more' intent if we have a lastTopic
+      const lower = userMessage.content.toLowerCase().trim();
+      const affirmative = /^(yes|yeah|yep|y|sure|ok|okay|please|pls|plz|s)$/i.test(lower) || lower.includes('yes please') || lower.includes('yes plz');
+      const outboundMessage = affirmative && lastTopic ? 'explain more' : userMessage.content;
+
       const res = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.content, last_topic: lastTopic }),
+        body: JSON.stringify({ message: outboundMessage, session_id: sessionId ?? undefined }),
       });
 
       if (!res.ok) {
@@ -78,10 +110,49 @@ const AIChat = () => {
       setMessages(prev => [...prev, aiResponse]);
       setLastTopic(data.last_topic);
     } catch (e: any) {
-      toast.error(e?.message || 'Failed to contact AI service');
+      // Fallback to local rule-based response if server is down
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: getAIResponse(inputMessage),
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+      // Optionally surface a toast once
+      // toast.error(e?.message || 'Using offline response');
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const getAIResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    // Track yes/no style responses if we asked a specific follow-up
+    const isYes = /^(yes|yeah|yep|y|i have|i did)/i.test(lowerMessage);
+    const isNo = /^(no|nope|n|not yet|didn't|didnt|haven't|havent)/i.test(lowerMessage);
+
+    // Handle follow-up to previously asked prompt
+    if (memory.lastPromptKey === 'tried_technique') {
+      if (isYes) {
+        setMemory(prev => ({ ...prev, triedTechnique: 'yes', lastPromptKey: undefined }));
+        return "Great! If that helped even a little, we can build on it. Would you like more techniques or prefer booking a counsellor session?";
+      }
+      if (isNo) {
+        setMemory(prev => ({ ...prev, triedTechnique: 'no', lastPromptKey: undefined }));
+        return "No worries. Let's try a quick, simple exercise together now: inhale 4s, hold 4s, exhale 4s — repeat 4 rounds. I can also share more options or help you book a counsellor. Which would you prefer?";
+      }
+      // If ambiguous, gently re-ask
+      return "Just to check — have you tried any of the techniques I mentioned? A simple yes or no is fine.";
+    }
+
+    // Anxiety-related responses
+    if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('panic') || lowerMessage.includes('worried')) {
+      setMemory(prev => ({ ...prev, topic: 'anxiety', lastPromptKey: 'tried_technique' }));
+      return "Anxiety can feel overwhelming. Have you tried simple grounding like the 5-4-3-2-1 technique or slow breathing?";
+    }
+
+    // After default or other cases, clear prompt key to avoid loops
+    return "Thank you for sharing that with me. I'm here to listen and support you. While I can offer some guidance and coping strategies, remember that I'm an AI and can't replace professional help when needed. Would you like me to suggest some immediate coping techniques, share relevant resources from our Wellness Hub, or help you book a session with one of our counsellors?";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

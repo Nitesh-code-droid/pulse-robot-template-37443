@@ -5,7 +5,7 @@ from typing import Optional, List
 import uvicorn
 
 # Import our local chatbot factory and helpers
-from chatbot import make_agent, get_token_limit
+from chatbot import make_agent, process_message
 
 app = FastAPI(title="Pulse AI Chat API", version="1.0.0")
 
@@ -30,7 +30,6 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     session_id: Optional[str] = None
-    last_topic: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -67,21 +66,7 @@ async def api_chat(payload: ChatRequest):
             raise HTTPException(status_code=500, detail=f"Failed to initialize agent: {e}")
 
     try:
-        user_input = payload.message.strip()
-        # Decide query according to the chatbot rules in chatbot.py
-        if "explain more" in user_input.lower() and payload.last_topic:
-            query = (
-                f"Explain more about the SYMPTOMS and PRECAUTIONS of {payload.last_topic}. "
-                "Do not add history, treatment, or statistics."
-            )
-            new_last_topic = payload.last_topic
-        else:
-            query = user_input
-            new_last_topic = user_input  # assume new topic
-
-        token_limit = get_token_limit(user_input)
-        response = agent.run(query, max_tokens=token_limit, show_full_reasoning=False)
-        reply_text = getattr(response, "content", None) or str(response)
+        reply_text, new_last_topic = process_message(agent, payload.message.strip(), session_id=payload.session_id)
         return ChatResponse(reply=reply_text, last_topic=new_last_topic)
     except HTTPException:
         raise
