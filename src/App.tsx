@@ -9,6 +9,10 @@ import { Toaster } from '@/components/ui/sonner';
 // Pages
 import Landing from '@/pages/Landing';
 import AuthPage from '@/pages/AuthPage';
+import CounsellorTestIntro from '@/pages/CounsellorTestIntro';
+import CounsellorTestPage from '@/pages/CounsellorTestPage';
+import ProfilePage from '@/pages/ProfilePage';
+import SuggestedCounsellors from '@/pages/SuggestedCounsellors';
 import Dashboard from '@/pages/Dashboard';
 import AIChat from '@/pages/AIChat';
 import WellnessHub from '@/pages/WellnessHub';
@@ -34,6 +38,17 @@ function App() {
                 <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/counsellor-enroll" element={<CounsellorTestIntro />} />
+                <Route path="/counsellor-test" element={<CounsellorTestPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route 
+                  path="/suggested-counsellors" 
+                  element={
+                    <ProtectedRoute requiredRole="student">
+                      <SuggestedCounsellors />
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Student Routes */}
                 <Route 

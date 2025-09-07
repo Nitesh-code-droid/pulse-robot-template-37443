@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
+import GlobalButtons from '@/components/GlobalButtons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, MessageCircle, Heart, ThumbsUp } from 'lucide-react';
@@ -24,9 +26,16 @@ const PeerSupport = () => {
     }
   ];
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <GlobalButtons
+        sidebarOpen={sidebarOpen}
+        onMenuClick={() => setSidebarOpen(true)}
+      />
       
       <main className="pt-24 pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

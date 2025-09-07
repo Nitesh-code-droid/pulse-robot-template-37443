@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
+import Sidebar from '@/components/Sidebar';
+import GlobalButtons from '@/components/GlobalButtons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Send, Bot, User, Heart, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ThemeToggle from '@/components/ThemeToggle';
+
+
+import { API_BASE } from '@/lib/config';
+import { toast } from 'sonner';
+
 
 interface Message {
   id: string;
@@ -15,6 +21,7 @@ interface Message {
 }
 
 const AIChat = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -25,7 +32,35 @@ const AIChat = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  // Simple conversational memory
+  const [memory, setMemory] = useState<{ topic?: string; lastPromptKey?: string; triedTechnique?: 'yes' | 'no' | undefined }>({});
+  const [lastTopic, setLastTopic] = useState<string | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Persist memory per session (lightweight)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('aichat_memory');
+      if (saved) setMemory(JSON.parse(saved));
+      let sid = localStorage.getItem('chat_session_id');
+      if (!sid) {
+        try {
+          // Generate a lightweight session id
+          const rand = Math.random().toString(36).slice(2);
+          sid = `sess_${Date.now()}_${rand}`;
+        } catch {
+          sid = `sess_${Date.now()}`;
+        }
+        localStorage.setItem('chat_session_id', sid);
+      }
+      setSessionId(sid);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('aichat_memory', JSON.stringify(memory)); } catch {}
+  }, [memory]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,52 +70,7 @@ const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const getAIResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Stress-related responses
-    if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('pressure')) {
-      return "I hear you're feeling stressed. That's completely normal, especially as a student. Let's try a quick breathing exercise: Take a deep breath in for 4 counts... hold for 4... and out for 4. Repeat this 3 times. Would you like me to guide you through more stress management techniques, or would you prefer to book a session with a counsellor?";
-    }
-    
-    // Anxiety-related responses
-    if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('panic') || lowerMessage.includes('worried')) {
-      return "Anxiety can feel overwhelming, but you're not alone in this. Try grounding yourself with the 5-4-3-2-1 technique: Name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, and 1 you can taste. This helps bring you back to the present moment. I'm here with you. Would you like to explore more coping strategies or connect with a professional counsellor?";
-    }
-    
-    // Sleep-related responses
-    if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('insomnia') || lowerMessage.includes('can\'t sleep')) {
-      return "Sleep issues are very common among students. Good sleep hygiene can make a huge difference. Try creating a bedtime routine: no screens 1 hour before bed, keep your room cool and dark, and try some gentle stretching or meditation. Would you like me to share more sleep improvement tips from our Wellness Hub?";
-    }
-    
-    // Depression/sadness responses
-    if (lowerMessage.includes('sad') || lowerMessage.includes('depressed') || lowerMessage.includes('down') || lowerMessage.includes('lonely')) {
-      return "I'm sorry you're feeling this way. Your feelings are valid, and it's brave of you to reach out. Remember that this feeling is temporary, even though it might not feel like it right now. Small steps can help - maybe try going for a short walk, listening to music you enjoy, or reaching out to a friend. If these feelings persist, I strongly encourage you to speak with a counsellor. You deserve support and care.";
-    }
-    
-    // Academic stress
-    if (lowerMessage.includes('exam') || lowerMessage.includes('study') || lowerMessage.includes('grades') || lowerMessage.includes('assignment')) {
-      return "Academic pressure is one of the biggest stressors for students. Remember that your worth isn't defined by your grades. Try breaking large tasks into smaller, manageable chunks. Take regular breaks using the Pomodoro technique (25 minutes study, 5 minute break). It's also important to maintain perspective - one exam or assignment doesn't determine your entire future. Would you like study tips from our Wellness Hub or prefer to discuss this with a counsellor?";
-    }
-    
-    // Social/relationship issues
-    if (lowerMessage.includes('friend') || lowerMessage.includes('relationship') || lowerMessage.includes('social') || lowerMessage.includes('family')) {
-      return "Relationship challenges can be really difficult to navigate. It's normal to have conflicts and misunderstandings with people we care about. Sometimes talking through these situations with an objective person can help provide clarity. Our peer support forum is also a great place to get advice from other students who might have faced similar situations. Would you like to explore our forum or speak with a counsellor about this?";
-    }
-    
-    // General positive responses
-    if (lowerMessage.includes('good') || lowerMessage.includes('fine') || lowerMessage.includes('okay') || lowerMessage.includes('well')) {
-      return "I'm glad to hear you're doing well! It's wonderful that you're taking care of your mental health proactively. Remember, even on good days, it's important to maintain healthy habits. Is there anything specific you'd like to explore today? I can share wellness tips, or you can check out our resources for maintaining positive mental health.";
-    }
-    
-    // Help/crisis keywords
-    if (lowerMessage.includes('help') || lowerMessage.includes('crisis') || lowerMessage.includes('emergency') || lowerMessage.includes('hurt')) {
-      return "I'm here to help, and I'm glad you reached out. If you're in immediate danger or having thoughts of self-harm, please contact emergency services or call Tele-MANAS at 1800-891-4416 right away. For non-emergency support, I can guide you through coping techniques, or you can book an appointment with one of our counsellors. You're not alone in this - there are people who want to help you.";
-    }
-    
-    // Default response
-    return "Thank you for sharing that with me. I'm here to listen and support you. While I can offer some guidance and coping strategies, remember that I'm an AI and can't replace professional help when needed. Would you like me to suggest some immediate coping techniques, share relevant resources from our Wellness Hub, or help you book a session with one of our counsellors?";
-  };
+  // Backend-powered responses via FastAPI
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -96,18 +86,76 @@ const AIChat = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
-    setTimeout(() => {
+    try {
+      // Map affirmative short replies to an 'explain more' intent if we have a lastTopic
+      const lower = userMessage.content.toLowerCase().trim();
+      const affirmative = /^(yes|yeah|yep|y|sure|ok|okay|please|pls|plz|s)$/i.test(lower) || lower.includes('yes please') || lower.includes('yes plz');
+      const outboundMessage = affirmative && lastTopic ? 'explain more' : userMessage.content;
+
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: outboundMessage, session_id: sessionId ?? undefined }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.detail || `Server error (${res.status})`);
+      }
+
+      const data: { reply: string; last_topic?: string } = await res.json();
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.reply,
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+      setLastTopic(data.last_topic);
+    } catch (e: any) {
+      // Fallback to local rule-based response if server is down
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         content: getAIResponse(inputMessage),
         sender: 'ai',
         timestamp: new Date()
       };
-
       setMessages(prev => [...prev, aiResponse]);
+      // Optionally surface a toast once
+      // toast.error(e?.message || 'Using offline response');
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
+  };
+
+  const getAIResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    // Track yes/no style responses if we asked a specific follow-up
+    const isYes = /^(yes|yeah|yep|y|i have|i did)/i.test(lowerMessage);
+    const isNo = /^(no|nope|n|not yet|didn't|didnt|haven't|havent)/i.test(lowerMessage);
+
+    // Handle follow-up to previously asked prompt
+    if (memory.lastPromptKey === 'tried_technique') {
+      if (isYes) {
+        setMemory(prev => ({ ...prev, triedTechnique: 'yes', lastPromptKey: undefined }));
+        return "Great! If that helped even a little, we can build on it. Would you like more techniques or prefer booking a counsellor session?";
+      }
+      if (isNo) {
+        setMemory(prev => ({ ...prev, triedTechnique: 'no', lastPromptKey: undefined }));
+        return "No worries. Let's try a quick, simple exercise together now: inhale 4s, hold 4s, exhale 4s — repeat 4 rounds. I can also share more options or help you book a counsellor. Which would you prefer?";
+      }
+      // If ambiguous, gently re-ask
+      return "Just to check — have you tried any of the techniques I mentioned? A simple yes or no is fine.";
+    }
+
+    // Anxiety-related responses
+    if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('panic') || lowerMessage.includes('worried')) {
+      setMemory(prev => ({ ...prev, topic: 'anxiety', lastPromptKey: 'tried_technique' }));
+      return "Anxiety can feel overwhelming. Have you tried simple grounding like the 5-4-3-2-1 technique or slow breathing?";
+    }
+
+    // After default or other cases, clear prompt key to avoid loops
+    return "Thank you for sharing that with me. I'm here to listen and support you. While I can offer some guidance and coping strategies, remember that I'm an AI and can't replace professional help when needed. Would you like me to suggest some immediate coping techniques, share relevant resources from our Wellness Hub, or help you book a session with one of our counsellors?";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -128,6 +176,11 @@ const AIChat = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <GlobalButtons
+        sidebarOpen={sidebarOpen}
+        onMenuClick={() => setSidebarOpen(true)}
+      />
       
       {/* Floating Theme Toggle - Always Visible */}
       <ThemeToggle variant="floating" />

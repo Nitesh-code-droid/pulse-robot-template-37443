@@ -141,7 +141,7 @@ const Landing = () => {
 
           {userType && (
             <div className="animate-fade-in">
-              <Link to="/auth">
+              <Link to={`/auth?role=${userType}`}>
                 <Button size="lg" className="gradient-button text-lg px-8 py-4">
                   Get Started as {userType === 'student' ? 'Student' : 'Counsellor'}
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -240,13 +240,13 @@ const Landing = () => {
               Join thousands of students who have found support, healing, and community through Nexion.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth">
+              <Link to="/auth?role=student">
                 <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                   Start as Student
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?role=counsellor">
                 <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                   Join as Counsellor
                   <Heart className="ml-2 h-5 w-5" />

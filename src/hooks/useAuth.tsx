@@ -177,7 +177,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'counsellor') => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
+      // If counsellor, ensure pass BEFORE creating auth user to avoid orphaned accounts
+      if (role === 'counsellor') {
+        const { data: attempt, error: attemptError } = await supabase
+          .from('counsellor_test_attempts')
+          .select('score, created_at')
+          .eq('email', email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (attemptError || !attempt || (attempt.score ?? 0) < 80) {
+          return { error: { message: 'You must pass the qualifying test (>= 80%) before counsellor signup.' } };
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
