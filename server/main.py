@@ -9,20 +9,12 @@ from chatbot import make_agent, process_message
 
 app = FastAPI(title="Pulse AI Chat API", version="1.0.0")
 
-# CORS: allow localhost dev and any provided origins
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "*",  # adjust as needed; for production, restrict this
-]
-
+# CORS: allow localhost dev and production origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -82,7 +74,7 @@ async def api_chat(payload: ChatRequest):
             raise HTTPException(status_code=500, detail=f"Failed to initialize agent: {e}")
 
     try:
-        reply_data = process_message(payload.session_id, payload.message.strip())
+        reply_data = process_message(agent, payload.message.strip(), session_id=payload.session_id)
         
         # Handle both string replies and counsellor suggestion dictionaries
         if isinstance(reply_data, dict) and reply_data.get("type") == "counsellor_suggestion":
@@ -105,4 +97,6 @@ async def api_chat(payload: ChatRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=False)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("server.main:app", host="0.0.0.0", port=port, reload=False)
