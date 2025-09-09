@@ -22,12 +22,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!isStudent || !profile?.id) return;
-    
-    // First check localStorage as a quick check
+    const key = `questionnaire_completed:${profile.id}`;
+    const sessionKey = `questionnaire_submitted_session:${profile.id}`;
+    // Quick session check (protects immediately after submit)
     try {
-      const localCompleted = localStorage.getItem('questionnaire_completed');
+      const s = sessionStorage.getItem(sessionKey);
+      if (s === '1') {
+        setShowQuestionnaire(false);
+        return;
+      }
+    } catch {}
+    // Then check localStorage as a quick check (namespaced per student)
+    try {
+      const localCompleted = localStorage.getItem(key);
       if (localCompleted === '1') {
-        console.log('Questionnaire completed (localStorage check)');
+        console.log('Questionnaire completed (localStorage namespaced check)');
         setShowQuestionnaire(false);
         return;
       }
@@ -62,7 +71,7 @@ const Dashboard = () => {
           console.log('Questionnaire already completed, not showing');
           setShowQuestionnaire(false);
           // Also set localStorage for future quick checks
-          try { localStorage.setItem('questionnaire_completed', '1'); } catch {}
+          try { localStorage.setItem(key, '1'); } catch {}
         }
       } catch (error) {
         console.error('Error checking questionnaire completion:', error);

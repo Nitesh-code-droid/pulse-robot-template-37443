@@ -144,8 +144,13 @@ export const QuestionnaireModal: React.FC<QuestionnaireModalProps> = ({ open, on
       onSuggestions?.(ids);
       setSubmitted(true);
       setError(null);
-      // mark completion for this browser
-      try { localStorage.setItem('questionnaire_completed', '1'); } catch {}
+      // mark completion for this student in this browser (namespaced)
+      try {
+        const key = studentId ? `questionnaire_completed:${studentId}` : 'questionnaire_completed';
+        localStorage.setItem(key, '1');
+        const sessionKey = studentId ? `questionnaire_submitted_session:${studentId}` : 'questionnaire_submitted_session';
+        sessionStorage.setItem(sessionKey, '1');
+      } catch {}
     } catch (e) {
       console.error('Error in handleSubmit:', e);
       // Show blocking error; do not mark as completed or proceed
