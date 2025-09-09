@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string, role: 'student' | 'counsellor') => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string, role: 'student' | 'counsellor') => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
 }
@@ -43,14 +44,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // For Google OAuth users, create profile if it doesn't exist
+          if (event === 'SIGNED_IN' && session.user.app_metadata?.provider === 'google') {
+            await ensureProfileExists(session.user);
+          }
+          
           // Fetch user profile
           setTimeout(async () => {
             await fetchUserProfile(session.user.id);
-          }, 0);
+          }, 100);
         } else {
           setProfile(null);
         }
@@ -77,6 +84,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const ensureProfileExists = async (user: User) => {
+    try {
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        // Create profile for Google OAuth user
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Google User',
+            role: 'student'
+          });
+
+        if (error) {
+          console.error('Error creating profile for Google user:', error);
+        } else {
+          console.log('Profile created for Google user:', user.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring profile exists:', error);
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -174,13 +212,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      console.log('Attempting Google OAuth with Supabase...');
+      console.log('Supabase URL:', supabase.supabaseUrl);
+      console.log('Redirect URL:', `${window.location.origin}/auth`);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        },
+      });
+
+      console.log('OAuth response:', { data, error });
+      
+      if (error) {
+        console.error('OAuth error details:', error);
+        return { error };
+      }
+      return { error: null };
+    } catch (error) {
+      console.error('OAuth catch error:', error);
+      return { error };
+    }
+  };
+
   const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'counsellor') => {
     try {
       const redirectUrl = `${window.location.origin}/`;
 
       // If counsellor, ensure pass BEFORE creating auth user to avoid orphaned accounts
       if (role === 'counsellor') {
-        const { data: attempt, error: attemptError } = await supabase
+        const { data: attempt, error: attemptError } = await (supabase as any)
           .from('counsellor_test_attempts')
           .select('score, created_at')
           .eq('email', email)
@@ -289,6 +357,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       signIn,
       signUp,
+      signInWithGoogle,
       signOut,
       updateProfile,
     }}>

@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
 import ThemeToggle from '@/components/ThemeToggle';
+import PrivacyDisclaimer from '@/components/PrivacyDisclaimer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin, Clock, Calendar, User } from 'lucide-react';
@@ -62,6 +63,11 @@ const BookCounsellor = () => {
       
       <main className="pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Privacy Disclaimer */}
+          <div className="mb-8">
+            <PrivacyDisclaimer />
+          </div>
+
           <div className="text-center mb-12">
             <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-6">
               Book a Counsellor 👩‍⚕️

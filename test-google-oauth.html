@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Google OAuth</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Google OAuth Test</h1>
+    <button id="googleBtn">Test Google Login</button>
+    <div id="output"></div>
+
+    <script>
+        const supabaseUrl = 'https://mtpndckrfzkctusscyoi.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10cG5kY2tyZnprY3R1c3NjeW9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTY5MzUsImV4cCI6MjA3MTQ3MjkzNX0.HGDaXvsNoO3mPvlGVLD5WdQ2CVsCIIaoo5qClo0aljs'
+        
+        const { createClient } = supabase
+        const supabaseClient = createClient(supabaseUrl, supabaseKey)
+
+        document.getElementById('googleBtn').addEventListener('click', async () => {
+            console.log('Testing Google OAuth...')
+            document.getElementById('output').innerHTML = 'Starting OAuth...'
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/test-google-oauth.html'
+                    }
+                })
+                
+                console.log('OAuth result:', { data, error })
+                
+                if (error) {
+                    document.getElementById('output').innerHTML = `Error: ${error.message}`
+                } else {
+                    document.getElementById('output').innerHTML = 'OAuth initiated successfully!'
+                }
+            } catch (err) {
+                console.error('Catch error:', err)
+                document.getElementById('output').innerHTML = `Catch Error: ${err.message}`
+            }
+        })
+
+        // Check for OAuth callback
+        if (window.location.hash.includes('access_token')) {
+            document.getElementById('output').innerHTML = 'OAuth callback received! Check console for session.'
+            supabaseClient.auth.getSession().then(({ data, error }) => {
+                console.log('Session:', data)
+                console.log('Session error:', error)
+            })
+        }
+    </script>
+</body>
+</html>

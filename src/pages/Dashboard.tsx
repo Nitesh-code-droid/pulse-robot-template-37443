@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
+import PrivacyDisclaimer from '@/components/PrivacyDisclaimer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Users, Calendar, MessageCircle, BookOpen, Activity, Clock, Star, TrendingUp } from 'lucide-react';
@@ -165,6 +166,13 @@ const Dashboard = () => {
               studentId={profile?.id}
             />
           )}
+          {/* Privacy Disclaimer for Students */}
+          {isStudent && (
+            <div className="mb-8">
+              <PrivacyDisclaimer />
+            </div>
+          )}
+
           {/* Welcome Section */}
           <div className="mb-12">
             <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-4">

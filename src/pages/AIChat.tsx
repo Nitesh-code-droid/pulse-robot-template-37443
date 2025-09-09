@@ -3,6 +3,9 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
 import ThemeToggle from '@/components/ThemeToggle';
+import PrivacyDisclaimer from '@/components/PrivacyDisclaimer';
+import AIChatDisclaimerModal from '@/components/AIChatDisclaimerModal';
+import CounsellorSuggestionModal from '@/components/CounsellorSuggestionModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +14,7 @@ import { Link } from 'react-router-dom';
 
 import { API_BASE } from '@/lib/config';
 import { toast } from 'sonner';
-
+import { renderFormattedText } from '@/lib/markdownUtils';
 
 interface Message {
   id: string;
@@ -38,6 +41,9 @@ interface CounsellorSuggestion {
 
 const AIChat = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [showCounsellorModal, setShowCounsellorModal] = useState(false);
+  const [counsellorSuggestion, setCounsellorSuggestion] = useState<CounsellorSuggestion | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -53,6 +59,14 @@ const AIChat = () => {
   const [lastTopic, setLastTopic] = useState<string | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Check if disclaimer was accepted and show modal if needed
+  useEffect(() => {
+    const disclaimerAccepted = localStorage.getItem('ai_chat_disclaimer_accepted');
+    if (!disclaimerAccepted) {
+      setShowDisclaimerModal(true);
+    }
+  }, []);
 
   // Persist memory per session (lightweight)
   useEffect(() => {
@@ -73,6 +87,10 @@ const AIChat = () => {
       setSessionId(sid);
     } catch {}
   }, []);
+
+  const handleDisclaimerAccept = () => {
+    setShowDisclaimerModal(false);
+  };
 
   useEffect(() => {
     try { localStorage.setItem('aichat_memory', JSON.stringify(memory)); } catch {}
@@ -120,13 +138,32 @@ const AIChat = () => {
       }
 
       const data: { reply: string | CounsellorSuggestion; last_topic?: string } = await res.json();
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.reply,
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
+      
+      // Check if this is a counsellor suggestion
+      if (typeof data.reply === 'object' && data.reply.type === 'counsellor_suggestion') {
+        // Show the counsellor suggestion modal
+        setCounsellorSuggestion(data.reply);
+        setShowCounsellorModal(true);
+        
+        // Also add the message to chat history
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: data.reply,
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        // Regular text response
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: data.reply,
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }
+      
       setLastTopic(data.last_topic);
     } catch (e: any) {
       // For high-risk messages, show emergency fallback instead of generic response
@@ -216,6 +253,27 @@ const AIChat = () => {
       
       <main className="pt-24 pb-4">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Disclaimer Modal */}
+          <AIChatDisclaimerModal 
+            open={showDisclaimerModal}
+            onAccept={handleDisclaimerAccept}
+          />
+          
+          {/* Counsellor Suggestion Modal */}
+          {counsellorSuggestion && (
+            <CounsellorSuggestionModal
+              open={showCounsellorModal}
+              onClose={() => setShowCounsellorModal(false)}
+              message={counsellorSuggestion.message}
+              counsellors={counsellorSuggestion.counsellors}
+            />
+          )}
+          
+          {/* Privacy Disclaimer */}
+          <div className="mb-6">
+            <PrivacyDisclaimer />
+          </div>
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary mb-4 border border-primary/20">
@@ -258,12 +316,16 @@ const AIChat = () => {
                         : 'chat-bubble-ai'
                     }`}>
                       {typeof message.content === 'string' ? (
-                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <p 
+                          className="text-sm leading-relaxed" 
+                          dangerouslySetInnerHTML={renderFormattedText(message.content)}
+                        />
                       ) : (
                         <div className="space-y-3">
-                          <p className="text-sm leading-relaxed text-red-700 font-medium">
-                            {message.content.message}
-                          </p>
+                          <p 
+                            className="text-sm leading-relaxed text-red-700 font-medium"
+                            dangerouslySetInnerHTML={renderFormattedText(message.content.message)}
+                          />
                           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                             <h4 className="font-semibold text-red-800 mb-2">Suggested Counsellors:</h4>
                             <div className="space-y-2">
