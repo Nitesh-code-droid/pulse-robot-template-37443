@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlobalButtons from '@/components/GlobalButtons';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Heart, Brain, Waves } from 'lucide-react';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Heart, Brain, Waves } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const GuidedMeditation = () => {
@@ -18,6 +18,9 @@ const GuidedMeditation = () => {
   const [selectedIntensity, setSelectedIntensity] = useState<'gentle' | 'moderate' | 'deep'>('moderate');
   const [showCustomization, setShowCustomization] = useState(false);
   const [currentScriptIndex, setCurrentScriptIndex] = useState(0);
+  const [volume, setVolume] = useState(0.7);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const meditationSessions = [
     {
@@ -27,6 +30,7 @@ const GuidedMeditation = () => {
       description: 'Calm racing thoughts and reduce anxiety with guided breathing',
       icon: Heart,
       color: 'blue',
+      audioFile: '/audio/Anxiety relief.mp3',
       script: [
         "Welcome to this anxiety relief meditation. Find a comfortable position and close your eyes if you feel comfortable doing so.",
         "Take a moment to notice your breath. Don't try to change it, just observe.",
@@ -47,6 +51,7 @@ const GuidedMeditation = () => {
       description: 'Improve mental clarity and concentration for studying',
       icon: Brain,
       color: 'purple',
+      audioFile: '/audio/Focus Concentration.mp3',
       script: [
         "Welcome to this focus and concentration meditation. Sit comfortably with your spine straight.",
         "Begin by taking three deep breaths to center yourself.",
@@ -68,6 +73,7 @@ const GuidedMeditation = () => {
       description: 'Wind down and prepare your mind and body for restful sleep',
       icon: Waves,
       color: 'indigo',
+      audioFile: '/audio/Sleep Preparation.mp3',
       script: [
         "Welcome to this sleep preparation meditation. Make yourself comfortable in your bed or a quiet space.",
         "Close your eyes and take a deep, slow breath in... and let it out with a gentle sigh.",
@@ -132,6 +138,18 @@ const GuidedMeditation = () => {
     setCurrentScriptIndex(0);
     setIsPlaying(true);
     setShowCustomization(false);
+    
+    // Load and play the audio file
+    const session = meditationSessions.find(s => s.id === sessionId);
+    if (session && audioRef.current) {
+      audioRef.current.src = session.audioFile;
+      audioRef.current.loop = true;
+      audioRef.current.volume = volume;
+      audioRef.current.muted = isMuted;
+      audioRef.current.play().catch(error => {
+        console.log('Audio autoplay prevented:', error);
+      });
+    }
   };
 
   const startCustomSession = (sessionId: string) => {
@@ -146,10 +164,18 @@ const GuidedMeditation = () => {
 
   const pauseSession = () => {
     setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
   };
 
   const resumeSession = () => {
     setIsPlaying(true);
+    if (audioRef.current) {
+      audioRef.current.play().catch(error => {
+        console.log('Audio play error:', error);
+      });
+    }
   };
 
   const stopSession = () => {
@@ -159,6 +185,10 @@ const GuidedMeditation = () => {
     setActiveSession(null);
     setSessionTime(0);
     setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -218,6 +248,21 @@ const GuidedMeditation = () => {
     return colorMap[color as keyof typeof colorMap] || colorMap.blue;
   };
 
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -247,7 +292,7 @@ const GuidedMeditation = () => {
 
           {/* Active Session Player */}
           {activeSession && (
-            <Card className="wellness-card mb-8 bg-primary/5 border-primary/20">
+            <Card className="wellness-card mb-8 audio-player-card">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Now Playing: {meditationSessions.find(s => s.id === activeSession)?.title}</span>
@@ -267,9 +312,9 @@ const GuidedMeditation = () => {
                   <div className="text-sm text-muted-foreground mb-3">
                     {selectedIntensity.charAt(0).toUpperCase() + selectedIntensity.slice(1)} intensity • {selectedDuration} minutes
                   </div>
-                  <div className="w-full bg-border rounded-full h-2">
+                  <div className="audio-progress">
                     <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      className="audio-progress-fill"
                       style={{ width: `${Math.min((sessionTime / (selectedDuration * 60)) * 100, 100)}%` }}
                     ></div>
                   </div>
@@ -292,6 +337,27 @@ const GuidedMeditation = () => {
                       <p className="text-sm text-muted-foreground mt-2">Follow the rhythm</p>
                     </div>
                   )}
+                </div>
+                
+                {/* Audio Controls */}
+                <div className="mt-4 meditation-controls">
+                  <div className="flex items-center justify-center space-x-4">
+                    <Button size="sm" variant="ghost" onClick={toggleMute}>
+                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </Button>
+                    <div className="flex items-center space-x-2 flex-1 max-w-32">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        className="flex-1 audio-range"
+                      />
+                      <span className="text-xs text-muted-foreground w-8">{Math.round((isMuted ? 0 : volume) * 100)}%</span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Session insights */}
@@ -319,66 +385,6 @@ const GuidedMeditation = () => {
             </Card>
           )}
 
-          {/* Customization Panel */}
-          <Card className="wellness-card mb-8 bg-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Customize Your Experience</span>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setShowCustomization(!showCustomization)}
-                >
-                  {showCustomization ? 'Hide' : 'Show'} Options
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {showCustomization && (
-              <CardContent className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-3 block">
-                    Session Duration
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[3, 5, 7, 10].map(duration => (
-                      <Button
-                        key={duration}
-                        size="sm"
-                        variant={selectedDuration === duration ? "default" : "outline"}
-                        onClick={() => setSelectedDuration(duration)}
-                      >
-                        {duration} min
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-3 block">
-                    Guidance Intensity
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { key: 'gentle', label: 'Gentle', desc: 'Slower pace, more pauses' },
-                      { key: 'moderate', label: 'Moderate', desc: 'Balanced guidance' },
-                      { key: 'deep', label: 'Deep', desc: 'Intensive focus' }
-                    ].map(intensity => (
-                      <Button
-                        key={intensity.key}
-                        size="sm"
-                        variant={selectedIntensity === intensity.key ? "default" : "outline"}
-                        onClick={() => setSelectedIntensity(intensity.key as any)}
-                        className="h-auto p-3 flex flex-col"
-                      >
-                        <span className="font-medium">{intensity.label}</span>
-                        <span className="text-xs text-muted-foreground mt-1">{intensity.desc}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
 
           {/* Meditation Sessions */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -500,16 +506,19 @@ const GuidedMeditation = () => {
                 )}
               </div>
 
-              {/* Enhanced Prototype Notice */}
-              <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  🧘‍♀️ <strong>Enhanced Meditation Experience:</strong> This prototype features dynamic content that adapts to your preferences. The full version would include audio guidance, background sounds, and personalized meditation paths based on your progress.
+              {/* Enhanced Audio Notice */}
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  🧘‍♀️ <strong>Enhanced Meditation Experience:</strong> Now featuring real audio guidance! Each meditation session includes soothing background audio that loops continuously. Use the volume controls during your session for the perfect experience.
                 </p>
               </div>
             </CardContent>
           </Card>
         </div>
       </main>
+      
+      {/* Hidden Audio Element */}
+      <audio ref={audioRef} preload="metadata" />
     </div>
   );
 };

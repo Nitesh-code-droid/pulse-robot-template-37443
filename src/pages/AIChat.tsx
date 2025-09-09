@@ -313,17 +313,17 @@ const AIChat = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover-lift border-healing-200 bg-healing-50">
+            <Card className="hover-lift border-healing-200 bg-healing-50 dark:bg-healing-900/20 dark:border-healing-800">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <Calendar className="h-8 w-8 text-healing-600" />
+                  <Calendar className="h-8 w-8 text-healing-600 dark:text-healing-400" />
                   <div>
-                    <h3 className="font-semibold text-foreground">Explore Wellness Resources</h3>
-                    <p className="text-sm text-muted-foreground">Self-help tools and educational content</p>
+                    <h3 className="font-semibold text-foreground dark:text-white">Explore Wellness Resources</h3>
+                    <p className="text-sm text-muted-foreground dark:text-gray-300">Self-help tools and educational content</p>
                   </div>
                 </div>
                 <Link to="/resources">
-                  <Button variant="outline" className="w-full border-healing-300 text-healing-700 hover:bg-healing-100">
+                  <Button variant="outline" className="w-full border-healing-300 text-healing-700 hover:bg-healing-100 dark:border-healing-600 dark:text-healing-300 dark:hover:bg-healing-800/30">
                     Visit Wellness Hub
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -332,11 +332,11 @@ const AIChat = () => {
             </Card>
           </div>
 
-          {/* Emergency Notice */}
-          <Card className="mt-8 bg-red-50 border-red-200">
+          {/* Emergency Support */}
+          <Card className="mt-8 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
             <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold text-red-800 mb-2">Emergency Support</h3>
-              <p className="text-red-700 mb-4">
+              <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Emergency Support</h3>
+              <p className="text-red-700 dark:text-red-300 mb-4">
                 If you're experiencing a mental health crisis or having thoughts of self-harm, please seek immediate help.
               </p>
               <a 

@@ -45,9 +45,9 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {theme === 'dark' ? (
-        <Sun className={`${iconSizes[size]} text-yellow-400`} />
+        <Sun className={`${iconSizes[size]} text-yellow-400 dark:text-yellow-300`} />
       ) : (
-        <Moon className={`${iconSizes[size]} text-slate-600`} />
+        <Moon className={`${iconSizes[size]} text-slate-600 dark:text-slate-300`} />
       )}
     </Button>
   );
