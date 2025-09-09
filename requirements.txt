@@ -3,5 +3,5 @@ uvicorn[standard]==0.30.6
 pydantic==2.9.1
 python-multipart==0.0.9
 # LLM agent stack used by chatbot.py
-agno==0.5.0
+agno
 # Ollama is a separate system install (https://ollama.com). Ensure the model 'llama3.2' is available.
