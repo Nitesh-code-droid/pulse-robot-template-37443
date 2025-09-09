@@ -214,25 +214,50 @@ const CounsellorAvailability = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="relative group">
-                    <select 
-                      className="appearance-none px-4 py-2.5 pr-10 border-2 border-primary/20 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 cursor-pointer backdrop-blur-sm"
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          addTimeSlot(selectedDay, e.target.value);
-                          e.target.value = '';
-                        }
-                      }}
-                    >
-                      <option value="" className="text-muted-foreground">✨ Add Time Slot</option>
-                      {commonTimeSlots
-                        .filter(slot => !weeklySchedule[selectedDay].some(s => s.time === slot))
-                        .map(slot => (
-                          <option key={slot} value={slot} className="text-foreground">{slot}</option>
-                        ))
-                      }
-                    </select>
+
+
+                  <select 
+  className="appearance-none px-4 py-2 pr-8 text-sm border-0 rounded-xl 
+             bg-gradient-to-r from-primary via-mindbridge-500 to-healing-500 
+             text-white font-semibold shadow-lg 
+             hover:shadow-2xl hover:scale-105 hover:rotate-1 
+             focus:outline-none focus:ring-4 focus:ring-primary/30 
+             transition-all duration-300 cursor-pointer backdrop-blur-sm"
+  onChange={(e) => {
+    if (e.target.value) {
+      addTimeSlot(selectedDay, e.target.value);
+      e.target.value = '';
+    }
+  }}
+>
+  {/* Default placeholder option */}
+  <option 
+    value="" 
+    className="text-gray-800 dark:text-white bg-white dark:bg-gray-800 font-medium"
+  >
+    ✨ Add Time Slot
+  </option>
+
+  {/* Dynamic options */}
+  {commonTimeSlots
+    .filter(slot => !weeklySchedule[selectedDay].some(s => s.time === slot))
+    .map(slot => (
+      <option 
+        key={slot} 
+        value={slot} 
+        className="text-gray-800 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+      >
+        {slot}
+      </option>
+    ))}
+</select>
+
+
+
+
+
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <Plus className="h-4 w-4 text-primary group-hover:scale-110 transition-transform duration-200" />
+                      <Plus className="h-4 w-4 text-white group-hover:scale-125 group-hover:rotate-90 transition-all duration-300 drop-shadow-sm" />
                     </div>
                   </div>
                 </div>
