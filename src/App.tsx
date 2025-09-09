@@ -26,6 +26,7 @@ import SleepDiary from '@/pages/SleepDiary';
 import PeerSupport from '@/pages/PeerSupport';
 import CounsellorBookings from '@/pages/CounsellorBookings';
 import CounsellorAvailability from '@/pages/CounsellorAvailability';
+import CounsellorActivities from '@/pages/CounsellorActivities';
 import NotFound from '@/pages/NotFound';
 
 // Protected Route wrapper
@@ -168,6 +169,14 @@ function App() {
                   element={
                     <ProtectedRoute requiredRole="counsellor">
                       <CounsellorAvailability />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/counsellor-activities" 
+                  element={
+                    <ProtectedRoute requiredRole="counsellor">
+                      <CounsellorActivities />
                     </ProtectedRoute>
                   } 
                 />

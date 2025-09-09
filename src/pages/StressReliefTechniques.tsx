@@ -22,6 +22,10 @@ const StressReliefTechniques = () => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
+  const [activeTechnique, setActiveTechnique] = useState<string | null>(null);
+  const [activeStretch, setActiveStretch] = useState<number | null>(null);
+  const [stretchTimer, setStretchTimer] = useState<number>(0);
+  const [stretchInterval, setStretchInterval] = useState<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const techniques = [
@@ -49,56 +53,116 @@ const StressReliefTechniques = () => {
         'Wrist circles: Rotate wrists clockwise and counterclockwise',
         'Spinal twist: Sit tall, twist gently left and right',
         'Deep breathing: Take 5 deep breaths between stretches'
+      ],
+      stretches: [
+        { name: 'Neck Rolls', duration: 30, instruction: 'Roll your head slowly in circles' },
+        { name: 'Shoulder Shrugs', duration: 15, instruction: 'Lift shoulders to ears, hold, release' },
+        { name: 'Wrist Circles', duration: 20, instruction: 'Rotate wrists in both directions' },
+        { name: 'Spinal Twist', duration: 25, instruction: 'Sit tall and twist gently left and right' }
       ]
     }
   ];
 
   const calmingSounds = [
     { 
-      name: 'Ocean Waves', 
-      duration: '10:00', 
-      description: 'Gentle ocean sounds for deep relaxation',
-      url: 'https://www.soundjay.com/misc/sounds/ocean-wave-1.wav' // Placeholder URL
-    },
-    { 
       name: 'Forest Rain', 
       duration: '15:00', 
       description: 'Peaceful rainfall in a quiet forest',
-      url: 'https://www.soundjay.com/misc/sounds/rain-1.wav' // Placeholder URL
+      url: '/audio/Forest rain 1.mp3'
     },
     { 
       name: 'Meditation Bells', 
       duration: '5:00', 
       description: 'Soft bells for mindful breathing',
-      url: 'https://www.soundjay.com/misc/sounds/bell-1.wav' // Placeholder URL
+      url: '/audio/Meditation Bells 1.mp3'
     },
     { 
       name: 'White Noise', 
       duration: '20:00', 
       description: 'Consistent background noise for focus',
-      url: 'https://www.soundjay.com/misc/sounds/white-noise.wav' // Placeholder URL
+      url: '/audio/White Noise.mp3'
     },
     { 
       name: 'Nature Sounds', 
       duration: '12:00', 
       description: 'Birds chirping and gentle breeze',
-      url: 'https://www.soundjay.com/misc/sounds/nature-1.wav' // Placeholder URL
+      url: '/audio/Nature Sound 1.mp3'
     },
     { 
       name: 'Soft Piano', 
       duration: '8:00', 
       description: 'Calming piano melodies for study',
-      url: 'https://www.soundjay.com/misc/sounds/piano-1.wav' // Placeholder URL
+      url: '/audio/Soft piano 1.mp3'
+    },
+    { 
+      name: 'Forest Rain 2', 
+      duration: '15:00', 
+      description: 'Alternative peaceful rainfall sounds',
+      url: '/audio/Forest rain 2.mp3'
     }
   ];
 
   const startBreathingExercise = () => {
-    setBreathingActive(true);
-    setBreathingPhase('inhale');
-    setBreathingCount(4);
+    const startBreathing = () => {
+      setBreathingActive(true);
+      
+      const breathingCycle = () => {
+        // Inhale phase
+        setBreathingPhase('inhale');
+        setBreathingCount(4);
+        
+        const inhaleInterval = setInterval(() => {
+          setBreathingCount(prev => prev - 1);
+        }, 1000);
+        
+        setTimeout(() => {
+          clearInterval(inhaleInterval);
+          // Hold phase
+          setBreathingPhase('hold');
+          setBreathingCount(7);
+          
+          const holdInterval = setInterval(() => {
+            setBreathingCount(prev => prev - 1);
+          }, 1000);
+          
+          setTimeout(() => {
+            clearInterval(holdInterval);
+            // Exhale phase
+            setBreathingPhase('exhale');
+            setBreathingCount(8);
+            
+            const exhaleInterval = setInterval(() => {
+              setBreathingCount(prev => prev - 1);
+            }, 1000);
+            
+            setTimeout(() => {
+              clearInterval(exhaleInterval);
+              // Pause phase
+              setBreathingPhase('pause');
+              setBreathingCount(2);
+              
+              const pauseInterval = setInterval(() => {
+                setBreathingCount(prev => prev - 1);
+              }, 1000);
+              
+              setTimeout(() => {
+                clearInterval(pauseInterval);
+                if (breathingActive) {
+                  breathingCycle(); // Repeat cycle
+                }
+              }, 2000);
+            }, 8000);
+          }, 7000);
+        }, 4000);
+      };
+      
+      breathingCycle();
+    };
+    
+    startBreathing();
   };
 
-  const stopBreathingExercise = () => {
+  const stopBreathing = () => {
     setBreathingActive(false);
     setBreathingPhase('inhale');
     setBreathingCount(4);
@@ -108,6 +172,42 @@ const StressReliefTechniques = () => {
     if (!completedTechniques.includes(techniqueId)) {
       setCompletedTechniques([...completedTechniques, techniqueId]);
     }
+    // Stop any active activities
+    if (techniqueId === 'breathing') {
+      stopBreathing();
+    } else if (techniqueId === 'stretches') {
+      stopStretch();
+    }
+  };
+
+  const startStretch = (stretchIndex: number) => {
+    const stretch = techniques.find(t => t.id === 'stretches')?.stretches?.[stretchIndex];
+    if (stretch) {
+      setActiveStretch(stretchIndex);
+      setStretchTimer(stretch.duration);
+      
+      const interval = setInterval(() => {
+        setStretchTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setActiveStretch(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      setStretchInterval(interval);
+    }
+  };
+
+  const stopStretch = () => {
+    if (stretchInterval) {
+      clearInterval(stretchInterval);
+      setStretchInterval(null);
+    }
+    setActiveStretch(null);
+    setStretchTimer(0);
   };
 
   // Audio player functions
@@ -120,13 +220,14 @@ const StressReliefTechniques = () => {
     setCurrentTrack(index);
     setIsPlaying(true);
     
-    // In a real app, you would load and play the actual audio file
-    // For this prototype, we'll simulate audio playback
+    // Load and play the actual audio file
     if (audioRef.current) {
       audioRef.current.src = calmingSounds[index].url;
-      audioRef.current.play().catch(() => {
-        // Handle play error - for prototype, we'll just simulate
-        console.log('Audio playback simulated for:', calmingSounds[index].name);
+      audioRef.current.loop = true;
+      audioRef.current.volume = volume;
+      audioRef.current.muted = isMuted;
+      audioRef.current.play().catch(error => {
+        console.log('Audio autoplay prevented:', error);
       });
     }
   };
@@ -181,33 +282,38 @@ const StressReliefTechniques = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Simulate audio time updates for prototype
+  // Audio time updates from actual audio element
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && currentTrack !== null) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const maxTime = parseInt(calmingSounds[currentTrack].duration.split(':')[0]) * 60 + 
-                         parseInt(calmingSounds[currentTrack].duration.split(':')[1]);
-          if (prev >= maxTime) {
-            setIsPlaying(false);
-            setCurrentTrack(null);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTrack, calmingSounds]);
+    const audio = audioRef.current;
+    if (!audio) return;
 
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+    const handleEnded = () => {
+      // Since we're looping, this shouldn't fire, but just in case
+      setIsPlaying(false);
+      setCurrentTrack(null);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
+  // Update volume when audio loads
   useEffect(() => {
-    if (currentTrack !== null) {
-      const trackDuration = parseInt(calmingSounds[currentTrack].duration.split(':')[0]) * 60 + 
-                           parseInt(calmingSounds[currentTrack].duration.split(':')[1]);
-      setDuration(trackDuration);
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      audioRef.current.muted = isMuted;
     }
-  }, [currentTrack, calmingSounds]);
+  }, [volume, isMuted]);
 
   React.useEffect(() => {
     if (!breathingActive) return;
@@ -310,7 +416,7 @@ const StressReliefTechniques = () => {
                     </Button>
                   ) : (
                     <>
-                      <Button onClick={stopBreathingExercise} variant="outline">
+                      <Button onClick={stopBreathing} variant="outline">
                         <Pause className="h-4 w-4 mr-2" />
                         Pause
                       </Button>
@@ -326,49 +432,86 @@ const StressReliefTechniques = () => {
           </Card>
 
           {/* Technique Cards */}
-          <div className="grid gap-6 mb-8">
-            {techniques.map((technique) => (
-              <Card key={technique.id} className="wellness-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <technique.icon className="h-6 w-6 mr-2 text-primary" />
-                      {technique.title}
-                    </div>
-                    {completedTechniques.includes(technique.id) && (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    )}
-                  </CardTitle>
-                  <CardDescription>{technique.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {technique.steps.map((step, index) => (
-                      <div key={index} className="flex items-start">
-                        <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3">
-                          {index + 1}
-                        </span>
-                        <p className="text-muted-foreground">{step}</p>
+          <div className="wellness-section">
+            <div className="wellness-grid grid-cols-1 gap-6 mb-8">
+              {techniques.map((technique) => (
+                <Card key={technique.id} className="wellness-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <technique.icon className="h-6 w-6 mr-2 text-primary" />
+                        {technique.title}
                       </div>
-                    ))}
-                  </div>
-                  <Button 
-                    onClick={() => markTechniqueComplete(technique.id)}
-                    className="w-full mt-4 gradient-button"
-                    disabled={completedTechniques.includes(technique.id)}
-                  >
-                    {completedTechniques.includes(technique.id) ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Completed
-                      </>
-                    ) : (
-                      'Mark as Completed'
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                      {completedTechniques.includes(technique.id) && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      )}
+                    </CardTitle>
+                    <CardDescription>{technique.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {technique.steps.map((step, index) => (
+                        <div key={index} className="flex items-start">
+                          <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-medium mr-3">
+                            {index + 1}
+                          </span>
+                          <p className="text-muted-foreground">{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {/* Interactive Stretch Activity for Desk Stretches */}
+                      {technique.id === 'stretches' && technique.stretches && (
+                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border">
+                          <h4 className="font-medium text-foreground mb-3">Interactive Stretch Guide</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {technique.stretches.map((stretch, index) => (
+                              <div key={index} className="relative">
+                                <Button
+                                  size="sm"
+                                  variant={activeStretch === index ? "default" : "outline"}
+                                  onClick={() => activeStretch === index ? stopStretch() : startStretch(index)}
+                                  className="w-full h-auto p-3 flex flex-col items-center justify-center"
+                                  disabled={activeStretch !== null && activeStretch !== index}
+                                >
+                                  <span className="text-xs font-medium">{stretch.name}</span>
+                                  <span className="text-xs text-muted-foreground">{stretch.duration}s</span>
+                                  {activeStretch === index && (
+                                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                      {stretchTimer}
+                                    </div>
+                                  )}
+                                </Button>
+                                {activeStretch === index && (
+                                  <div className="mt-2 p-2 bg-white/50 dark:bg-black/20 rounded text-xs text-center">
+                                    {stretch.instruction}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        onClick={() => markTechniqueComplete(technique.id)}
+                        className="w-full gradient-button"
+                        disabled={completedTechniques.includes(technique.id)}
+                      >
+                        {completedTechniques.includes(technique.id) ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Completed
+                          </>
+                        ) : (
+                          'Mark as Completed'
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
 
           {/* Calming Sounds Playlist */}
@@ -385,7 +528,7 @@ const StressReliefTechniques = () => {
             <CardContent>
               {/* Audio Player Controls */}
               {currentTrack !== null && (
-                <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="mb-6 audio-player-card p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="font-medium text-foreground">{calmingSounds[currentTrack].name}</h4>
@@ -413,9 +556,9 @@ const StressReliefTechniques = () => {
                       <span>{formatTime(currentTime)}</span>
                       <span>{formatTime(duration)}</span>
                     </div>
-                    <div className="w-full bg-border rounded-full h-2">
+                    <div className="audio-progress">
                       <div 
-                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        className="audio-progress-fill"
                         style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                       ></div>
                     </div>
@@ -433,7 +576,7 @@ const StressReliefTechniques = () => {
                       step="0.1"
                       value={isMuted ? 0 : volume}
                       onChange={handleVolumeChange}
-                      className="flex-1 h-2 bg-border rounded-lg appearance-none cursor-pointer"
+                      className="flex-1 audio-range"
                     />
                     <span className="text-sm text-muted-foreground w-8">{Math.round((isMuted ? 0 : volume) * 100)}%</span>
                   </div>
@@ -457,8 +600,7 @@ const StressReliefTechniques = () => {
                       <p className="text-sm text-muted-foreground">{sound.description}</p>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="text-sm font-medium text-primary">{sound.duration}</p>
-                      <Button size="sm" variant="outline" className="mt-1">
+                      <Button size="sm" variant="outline">
                         {currentTrack === index && isPlaying ? (
                           <Pause className="h-3 w-3" />
                         ) : (
@@ -470,10 +612,10 @@ const StressReliefTechniques = () => {
                 ))}
               </div>
               
-              {/* Prototype Notice */}
-              <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  🎵 <strong>Audio Player Prototype:</strong> This demonstrates the audio player interface. In the full version, actual calming sound files would be loaded and played.
+              {/* Enhanced Audio Notice */}
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  🎵 <strong>Enhanced Audio Experience:</strong> Now featuring real calming sound files! Each track loops continuously and includes volume controls. Perfect for background ambiance while studying or relaxing.
                 </p>
               </div>
             </CardContent>
@@ -506,6 +648,9 @@ const StressReliefTechniques = () => {
           </Card>
         </div>
       </main>
+      
+      {/* Hidden Audio Elements */}
+      <audio ref={audioRef} preload="metadata" />
     </div>
   );
 };

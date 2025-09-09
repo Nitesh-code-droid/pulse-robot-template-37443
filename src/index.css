@@ -156,10 +156,35 @@
   /* Enhanced card styling for better dark theme visibility */
   .wellness-card {
     @apply bg-card border border-border/60 shadow-lg hover:shadow-xl dark:shadow-2xl dark:border-border/80 dark:bg-card/95 transition-all duration-300 rounded-xl backdrop-blur-sm;
+    /* Enhanced spacing and padding */
+    min-height: fit-content;
   }
 
   .wellness-card:hover {
     @apply border-primary/30 shadow-primary/10 dark:border-primary/50;
+  }
+
+  /* Improved text contrast for all themes */
+  .theme-text-primary {
+    @apply text-foreground dark:text-foreground;
+  }
+
+  .theme-text-secondary {
+    @apply text-muted-foreground dark:text-muted-foreground;
+  }
+
+  .theme-text-accent {
+    @apply text-primary dark:text-primary;
+  }
+
+  /* Enhanced button visibility */
+  .theme-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90;
+  }
+
+  /* Enhanced card backgrounds */
+  .theme-card {
+    @apply bg-card text-card-foreground border border-border dark:bg-card dark:text-card-foreground dark:border-border;
   }
 
   /* Enhanced visibility for dark mode elements */
@@ -181,9 +206,145 @@
   }
   
   .gradient-button {
-    @apply bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-white font-medium py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98];
+    @apply bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
   }
-  
+
+  .gradient-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .gradient-button:hover::before {
+    left: 100%;
+  }
+
+  .text-contrast {
+    @apply text-foreground;
+    transition: color 0.2s ease-in-out;
+  }
+
+  .text-contrast-muted {
+    @apply text-muted-foreground;
+    transition: color 0.2s ease-in-out;
+  }
+
+  .bg-theme-card {
+    @apply bg-card border-border;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  }
+
+  .border-theme {
+    @apply border-border;
+    transition: border-color 0.2s ease-in-out;
+  }
+
+  .shadow-theme {
+    @apply shadow-sm;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+
+  .dark .shadow-theme {
+    @apply shadow-lg shadow-black/20;
+  }
+
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Smooth page transitions */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  }
+
+  .page-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .page-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+  }
+
+  /* Fade in animation for dynamic content */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  /* Staggered animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+
+  /* Pulse animation for notifications */
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  .pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  /* Smooth loading states */
+  .loading-shimmer {
+    background: linear-gradient(90deg, 
+      rgba(255, 255, 255, 0) 0%, 
+      rgba(255, 255, 255, 0.2) 50%, 
+      rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
   .emergency-button {
     @apply bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl animate-pulse;
   }
@@ -278,5 +439,73 @@
   .parallax {
     transform: translateY(var(--parallax-y, 0));
     transition: transform 0.1s ease-out;
+  }
+
+  /* Enhanced audio controls styling */
+  .audio-range {
+    @apply appearance-none bg-border rounded-lg cursor-pointer;
+    height: 8px;
+  }
+
+  .audio-range::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 bg-primary rounded-full cursor-pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .audio-range::-moz-range-thumb {
+    @apply w-4 h-4 bg-primary rounded-full cursor-pointer border-0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .audio-range:focus {
+    @apply outline-none ring-2 ring-primary/50;
+  }
+
+  /* Audio player card enhancements */
+  .audio-player-card {
+    @apply bg-primary/5 border border-primary/20 rounded-lg backdrop-blur-sm;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .audio-player-card:hover {
+    @apply bg-primary/10 border-primary/30;
+  }
+
+  /* Progress bar styling */
+  .audio-progress {
+    @apply bg-border rounded-full overflow-hidden;
+    height: 8px;
+  }
+
+  .audio-progress-fill {
+    @apply bg-primary rounded-full transition-all duration-300;
+    height: 100%;
+  }
+
+  /* Enhanced wellness card spacing */
+  .wellness-section {
+    @apply space-y-6 md:space-y-8;
+  }
+
+  .wellness-grid {
+    @apply grid gap-4 md:gap-6;
+  }
+
+  /* Meditation session enhancements */
+  .meditation-controls {
+    @apply flex items-center justify-center space-x-3 p-4 bg-background/50 rounded-lg;
+  }
+
+  .breathing-indicator {
+    @apply w-16 h-16 mx-auto rounded-full flex items-center justify-center transition-all duration-1000;
+  }
+
+  /* Enhanced button states */
+  .audio-button {
+    @apply transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .audio-button:disabled {
+    @apply opacity-50 cursor-not-allowed hover:scale-100;
   }
 
